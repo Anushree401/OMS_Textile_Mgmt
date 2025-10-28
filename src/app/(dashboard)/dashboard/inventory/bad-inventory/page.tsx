@@ -1,29 +1,35 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { BadInventoryContent } from '@/components/inventory/bad-inventory-content'
 
 export default async function BadInventoryPage() {
-  const supabase = createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
+  // Create Supabase client correctly for App Router
+  const supabase = createServerComponentClient({ cookies })
+
+  //  Get authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
     redirect('/login')
   }
 
-  // Get user profile
-  const { data: profile } = await supabase
+  // Fetch user profile
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  if (!profile) {
+  if (profileError || !profile) {
     redirect('/login')
   }
 
-  // Fetch bad inventory items
- const { data: badInventoryItems, error } = await supabase
+  // Fetch bad inventory
+  const { data: badInventoryItems, error: badInvError } = await supabase
     .from('isteaching_challans')
     .select(`
       *,
@@ -33,8 +39,8 @@ export default async function BadInventoryPage() {
     .eq('inventory_classification', 'bad')
     .order('date', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching bad inventory items:', error)
+  if (badInvError) {
+    console.error('Error fetching bad inventory items:', badInvError)
   }
 
   return (

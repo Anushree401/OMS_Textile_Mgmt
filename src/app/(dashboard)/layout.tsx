@@ -1,5 +1,6 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 
 export default async function Layout({
@@ -7,22 +8,27 @@ export default async function Layout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
+  // Create Supabase client using cookies for authentication context
+  const supabase = createServerComponentClient({ cookies })
+
+  // Get current authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
     redirect('/login')
   }
 
   // Get user profile
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  if (!profile) {
+  if (profileError || !profile) {
     redirect('/login')
   }
 

@@ -8,8 +8,10 @@ export const createBrowserClient = () =>
 // For server-side operations
 export const createServerClient = () =>
   createClient(
+    // process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    // process.env.SUPABASE_SERVICE_ROLE_KEY!
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
 // Default client for client-side
