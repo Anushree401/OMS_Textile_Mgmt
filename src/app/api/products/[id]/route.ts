@@ -13,27 +13,28 @@ interface Product {
   product_description?: string;
   product_material?: string;
   product_brand: string;
- product_country: string;
+  product_country: string;
   product_status: 'Active' | 'Inactive';
   product_qty: number;
   wash_care?: string;
- created_at: string;
- updated_at: string;
+  created_at: string;
+  updated_at: string;
   batch_numbers?: string[];
   cost_incurred?: number;
   weaver_challan_numbers?: string[];
   stitching_challan_numbers?: string[];
   associated_data?: {
-    stitching_challans: IsteachingChallan[];
+    stitching_challans: IStitchingChallan[];
     weaver_challans: WeaverChallan[];
   };
 }
 
-interface IsteachingChallan {
+// Fixed interface name
+interface IStitchingChallan {
   id: number;
   challan_no: string;
- date: string;
- batch_number: string[];
+  date: string;
+  batch_number: string[];
   quality: string;
   quantity: number;
   product_size: { size: string; quantity: number }[]; // Array of size objects
@@ -53,7 +54,7 @@ interface Expense {
 // Parse size details from various formats
 const parseSizeDetails = (sizeDetails: unknown): { size: string; quantity: number }[] => {
   if (!sizeDetails) return []
- try {
+  try {
     if (typeof sizeDetails === 'string') {
       // If it's a string, try to parse as JSON
       const parsed = JSON.parse(sizeDetails);
@@ -79,10 +80,12 @@ const parseSizeDetails = (sizeDetails: unknown): { size: string; quantity: numbe
   }
 }
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
+    // FIX: Initialize the Supabase client
+    const supabase = await createServerSupabaseClient();
+    
     const resolvedParams = await params;
-    const supabase = createServerSupabaseClient();
     
     // First, fetch the product by ID
     const { data: product, error } = await supabase
@@ -95,9 +98,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     
-    // Find all isteaching_challans associated with this product
-    const { data: isteachingChallans, error: challanError } = await supabase
-      .from('isteaching_challans')
+    // Find all stitching_challans associated with this product
+    // (Table name assumption: 'stitching_challans')
+    const { data: stitchingChallans, error: challanError } = await supabase
+      .from('stitching_challans') // Corrected table name for consistency with interface
       .select(`
         id,
         challan_no,
@@ -110,17 +114,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .eq('selected_product_id', resolvedParams.id);
     
     if (challanError) {
-      console.error('Error fetching isteaching challans:', challanError);
+      console.error('Error fetching stitching challans:', challanError);
     }
     
-    // Parse product_size in isteachingChallans to handle different formats
-    const parsedIsteachingChallans = isteachingChallans?.map((challan: IsteachingChallan) => ({
+    // Parse product_size in stitchingChallans to handle different formats
+    // Cast to IStitchingChallan
+    const parsedStitchingChallans = (stitchingChallans as IStitchingChallan[])?.map((challan) => ({
       ...challan,
       product_size: parseSizeDetails(challan.product_size)
     })) || [];
     
     // Get all batch numbers associated with this product
-    const allBatchNumbers = parsedIsteachingChallans ? parsedIsteachingChallans.flatMap((challan: IsteachingChallan) => challan.batch_number) : [];
+    const allBatchNumbers = parsedStitchingChallans ? parsedStitchingChallans.flatMap((challan: IStitchingChallan) => challan.batch_number) : [];
     
     // Find all weaver_challans associated with these batch numbers
     let weaverChallans: WeaverChallan[] = [];
@@ -139,8 +144,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     
     // Calculate total cost from expenses associated with the stitching challans
     let totalCost = 0;
-    if (parsedIsteachingChallans && parsedIsteachingChallans.length > 0) {
-      const stitchingChallanNos = parsedIsteachingChallans.map((challan: IsteachingChallan) => challan.challan_no);
+    if (parsedStitchingChallans && parsedStitchingChallans.length > 0) {
+      const stitchingChallanNos = parsedStitchingChallans.map((challan: IStitchingChallan) => challan.challan_no);
       
       const { data: expenses, error: expenseError } = await supabase
         .from('expenses')
@@ -179,9 +184,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       batch_numbers: allBatchNumbers,
       cost_incurred: totalCost,
       weaver_challan_numbers: weaverChallans.map(wc => wc.challan_no),
-      stitching_challan_numbers: parsedIsteachingChallans ? parsedIsteachingChallans.map((sc: IsteachingChallan) => sc.challan_no) : [],
+      stitching_challan_numbers: parsedStitchingChallans ? parsedStitchingChallans.map((sc: IStitchingChallan) => sc.challan_no) : [],
       associated_data: {
-        stitching_challans: parsedIsteachingChallans,
+        stitching_challans: parsedStitchingChallans,
         weaver_challans: weaverChallans
       }
     });
