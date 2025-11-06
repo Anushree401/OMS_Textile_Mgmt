@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { ProductEditForm } from '@/components/inventory/product-edit-form'
 import { Button } from '@/components/ui/button'

@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/utils'
 import {
   Table,

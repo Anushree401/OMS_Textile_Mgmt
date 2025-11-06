@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import BarcodeChallanClient from '@/app/(print)/print/barcode/isteaching-challan/[id]/BarcodeChallanClient'
 
