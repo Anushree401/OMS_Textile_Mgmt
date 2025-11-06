@@ -755,3 +755,27 @@ CREATE TABLE public.shorting_entries (
 
 -- Add comment to explain the weaver_challan_qty column
 COMMENT ON COLUMN public.shorting_entries.weaver_challan_qty IS 'Original quantity of the selected quality from the weaver challan at the time of shorting entry creation';
+
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_name TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS gst_number TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pincode TEXT;
+
+-- Update the auto-profile creation trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, role, onboarding_completed)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    'user',
+    FALSE
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
