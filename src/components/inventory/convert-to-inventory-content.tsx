@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,15 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableHead,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -26,10 +16,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Check, X, AlertTriangle } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Database } from "@/types/database";
-import { formatDate } from "@/lib/utils";
+import { AlertTriangle, Calendar, Check, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type IsteachingChallan =
   Database["public"]["Tables"]["isteaching_challans"]["Row"] & {
@@ -74,15 +72,7 @@ export function ConvertToInventoryContent({
     useState<IsteachingChallan | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  // Debug: Log the first challan to see what data we're getting
-  // useEffect(() => {
-  //   if (challans && challans.length > 0) {
-  //     console.log('First challan data:', challans[0]);
-  //   }
-  // }, [challans]);
-
   // Filter challans that haven't been converted to inventory
-  // Only show challans that are unclassified
   const unconvertedChallans = challans.filter((challan) => {
     return (
       !challan.inventory_classification ||
@@ -119,6 +109,15 @@ export function ConvertToInventoryContent({
     // Close the popup
     setIsPopupOpen(false);
     setSelectedChallan(null);
+  };
+
+  // Helper function for safe batch number rendering
+  const renderBatchNumbers = (batchNumber: IsteachingChallan["batch_number"]) => {
+    if (Array.isArray(batchNumber)) {
+      return batchNumber.join(", ");
+    }
+    // Handle string or null/undefined case
+    return batchNumber || "N/A";
   };
 
   return (
@@ -190,7 +189,8 @@ export function ConvertToInventoryContent({
                     {challan.ledgers?.business_name || "N/A"}
                   </TableCell>
                   <TableCell>{challan.quality}</TableCell>
-                  <TableCell>{challan.batch_number.join(", ")}</TableCell>
+                  {/* 🛠️ FIX 1: Use safe renderer for table cell */}
+                  <TableCell>{renderBatchNumbers(challan.batch_number)}</TableCell>
                   <TableCell>{challan.quantity}</TableCell>
                   <TableCell>
                     {challan.products?.product_name || "N/A"}
@@ -319,8 +319,9 @@ export function ConvertToInventoryContent({
                                   <span className="text-gray-600">
                                     Batch Numbers:
                                   </span>
+                                  {/* 🛠️ FIX 2: Use safe renderer for dialog details */}
                                   <span className="font-medium">
-                                    {selectedChallan.batch_number.join(", ")}
+                                    {renderBatchNumbers(selectedChallan.batch_number)}
                                   </span>
                                 </div>
                                 {selectedChallan.both_selected ? (

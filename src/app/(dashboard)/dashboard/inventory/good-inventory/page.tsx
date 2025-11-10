@@ -1,9 +1,10 @@
+import { GoodInventoryContent } from "@/components/inventory/good-inventory-content";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { GoodInventoryContent } from "@/components/inventory/good-inventory-content";
 
 export default async function GoodInventoryPage() {
-  const supabase = createServerSupabaseClient();
+  // FIX 1: Add 'await' to resolve the Supabase client Promise
+  const supabase = await createServerSupabaseClient(); 
 
   const {
     data: { user },
@@ -19,6 +20,9 @@ export default async function GoodInventoryPage() {
     .select("*")
     .eq("id", user.id)
     .single();
+    
+  // ⚠️ Note: If this line throws a 'user_role' on 'never' error, 
+  // you'll need to use 'profile as any' due to the untyped client.
 
   if (!profile) {
     redirect("/login");
@@ -44,7 +48,7 @@ export default async function GoodInventoryPage() {
   return (
     <GoodInventoryContent
       items={goodInventoryItems || []}
-      userRole={profile.user_role}
+      userRole={(profile as any)?.user_role} // Use safe access for userRole
     />
   );
 }

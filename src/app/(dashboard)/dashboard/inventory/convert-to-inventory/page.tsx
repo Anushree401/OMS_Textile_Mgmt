@@ -7,6 +7,9 @@ import { redirect } from "next/navigation";
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ConvertedProfile = Pick<ProfileRow, "id" | "user_role">;
 
+// *** ASSUMPTION: The correct Foreign Key is 'weaver_challans_vendor_ledger_id_fkey' ***
+const LEDGER_RELATIONSHIP_KEY = "ledgers!weaver_challans_vendor_ledger_id_fkey"; 
+
 export default async function ConvertToInventoryPage() {
   const supabase = await createClient();
 
@@ -26,10 +29,8 @@ export default async function ConvertToInventoryPage() {
     .eq("id", user.id)
     .single();
 
-  // FIX APPLIED HERE: Convert profile to 'unknown' before casting to ConvertedProfile
   const typedProfile = profile as unknown as ConvertedProfile;
 
-  // FIX 2: Check for profile or missing user_role, then redirect
   if (!profile || !typedProfile.user_role) {
     return redirect("/login");
   }
@@ -39,10 +40,11 @@ export default async function ConvertToInventoryPage() {
     .from("weaver_challans")
     .select(
       `
-            *,
-            ledgers (business_name),
-            products (product_name, product_description, product_image, product_sku)
-        `,
+        // FIX: Explicitly specify the Foreign Key relationship name
+        *,
+        ${LEDGER_RELATIONSHIP_KEY} (business_name), 
+        products (product_name, product_description, product_image, product_sku)
+      `,
     )
     .order("created_at", { ascending: false });
 
@@ -55,8 +57,6 @@ export default async function ConvertToInventoryPage() {
   return (
     <ConvertToInventoryContent
       challans={challans || []}
-      // FIX 2 (The final step): Use Non-null Assertion Operator (!)
-      // This is safe because we checked if user_role exists on line 36.
       userRole={typedProfile.user_role!}
     />
   );

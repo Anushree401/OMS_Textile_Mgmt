@@ -1,9 +1,16 @@
+import { ProductsContent } from "@/components/inventory/products-content";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { ProductsContent } from "@/components/inventory/products-content";
+
+// Define the structure of the fetched elements for map/set operations
+type ProductFilterRow = {
+  product_category: string | null;
+  product_color: string | null;
+  product_material: string | null;
+};
 
 export default async function ProductsPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient(); 
 
   const {
     data: { user },
@@ -32,38 +39,42 @@ export default async function ProductsPage() {
     .range(0, 9); // First 10 products
 
   // Fetch filter options
+  // Workarounds for untyped client: Assert results as 'any' for local use
   const { data: categories } = await supabase
     .from("products")
     .select("product_category")
     .not("product_category", "is", null)
-    .neq("product_category", "");
+    .neq("product_category", "") as any; 
 
   const { data: colors } = await supabase
     .from("products")
     .select("product_color")
     .not("product_color", "is", null)
-    .neq("product_color", "");
+    .neq("product_color", "") as any; 
 
   const { data: materials } = await supabase
     .from("products")
     .select("product_material")
     .not("product_material", "is", null)
-    .neq("product_material", "");
+    .neq("product_material", "") as any; 
 
   const filterOptions = {
+    // FIX 1 & 2: Type parameters (p) and assert final array as string[]
     categories: [
       ...new Set(
-        categories?.map((p) => p.product_category).filter(Boolean) || [],
+        (categories as ProductFilterRow[])?.map((p: ProductFilterRow) => p.product_category).filter(Boolean) || [],
       ),
-    ],
+    ] as string[], 
+    // FIX 1 & 2: Type parameters (p) and assert final array as string[]
     colors: [
-      ...new Set(colors?.map((p) => p.product_color).filter(Boolean) || []),
-    ],
+      ...new Set((colors as ProductFilterRow[])?.map((p: ProductFilterRow) => p.product_color).filter(Boolean) || []),
+    ] as string[], 
+    // FIX 1 & 2: Type parameters (p) and assert final array as string[]
     materials: [
       ...new Set(
-        materials?.map((p) => p.product_material).filter(Boolean) || [],
+        (materials as ProductFilterRow[])?.map((p: ProductFilterRow) => p.product_material).filter(Boolean) || [],
       ),
-    ],
+    ] as string[], 
     statuses: ["Active", "Inactive"],
   };
 
@@ -72,7 +83,7 @@ export default async function ProductsPage() {
       products={products || []}
       totalCount={count || 0}
       filterOptions={filterOptions}
-      userRole={profile.user_role}
+      userRole={(profile as any)?.user_role} 
     />
   );
 }
