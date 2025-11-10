@@ -1,46 +1,59 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Database } from '@/types/database'
-import Image from 'next/image'
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Database } from "@/types/database";
+import Image from "next/image";
 
-type Ledger = Database['public']['Tables']['ledgers']['Row']
+type Ledger = Database["public"]["Tables"]["ledgers"]["Row"];
 
 interface LedgerSelectModalProps {
-  ledgers: Ledger[]
-  onLedgerSelect: (ledgerId: string) => void
-  children: React.ReactNode
+  ledgers: Ledger[];
+  onLedgerSelect: (ledgerId: string) => void;
+  children: React.ReactNode;
 }
 
-export function LedgerSelectModal({ ledgers, onLedgerSelect, children }: LedgerSelectModalProps) {
-  const [open, setOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [cityFilter, setCityFilter] = useState('')
-  const [stateFilter, setStateFilter] = useState('')
+export function LedgerSelectModal({
+  ledgers,
+  onLedgerSelect,
+  children,
+}: LedgerSelectModalProps) {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
 
-  const filteredLedgers = ledgers.filter(ledger => {
-    const searchTermLower = searchTerm.toLowerCase()
-    const cityLower = cityFilter.toLowerCase()
-    const stateLower = stateFilter.toLowerCase()
+  const filteredLedgers = ledgers.filter((ledger) => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const cityLower = cityFilter.toLowerCase();
+    const stateLower = stateFilter.toLowerCase();
 
     return (
       (ledger.business_name.toLowerCase().includes(searchTermLower) ||
-       ledger.ledger_id.toLowerCase().includes(searchTermLower) ||
-       (ledger.gst_number && ledger.gst_number.toLowerCase().includes(searchTermLower))) &&
-      (!cityLower || (ledger.city && ledger.city.toLowerCase().includes(cityLower))) &&
-      (!stateLower || (ledger.state && ledger.state.toLowerCase().includes(stateLower)))
-    )
-  })
+        ledger.ledger_id.toLowerCase().includes(searchTermLower) ||
+        (ledger.gst_number &&
+          ledger.gst_number.toLowerCase().includes(searchTermLower))) &&
+      (!cityLower ||
+        (ledger.city && ledger.city.toLowerCase().includes(cityLower))) &&
+      (!stateLower ||
+        (ledger.state && ledger.state.toLowerCase().includes(stateLower)))
+    );
+  });
 
   const handleSelect = (ledgerId: string) => {
-    onLedgerSelect(ledgerId)
-    setOpen(false)
-  }
+    onLedgerSelect(ledgerId);
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -57,7 +70,7 @@ export function LedgerSelectModal({ ledgers, onLedgerSelect, children }: LedgerS
                 id="search"
                 placeholder="Search by name, ID, or GST..."
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -66,7 +79,7 @@ export function LedgerSelectModal({ ledgers, onLedgerSelect, children }: LedgerS
                 id="city"
                 placeholder="Filter by city..."
                 value={cityFilter}
-                onChange={e => setCityFilter(e.target.value)}
+                onChange={(e) => setCityFilter(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -75,13 +88,13 @@ export function LedgerSelectModal({ ledgers, onLedgerSelect, children }: LedgerS
                 id="state"
                 placeholder="Filter by state..."
                 value={stateFilter}
-                onChange={e => setStateFilter(e.target.value)}
+                onChange={(e) => setStateFilter(e.target.value)}
               />
             </div>
           </div>
           <ScrollArea className="h-72">
             <div className="space-y-2">
-              {filteredLedgers.map(ledger => (
+              {filteredLedgers.map((ledger) => (
                 <div
                   key={ledger.ledger_id}
                   className="p-2 border rounded-md cursor-pointer hover:bg-gray-100 flex items-center space-x-4"
@@ -116,5 +129,5 @@ export function LedgerSelectModal({ ledgers, onLedgerSelect, children }: LedgerS
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

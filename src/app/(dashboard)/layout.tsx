@@ -1,40 +1,45 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { redirect } from "next/navigation";
+
+// FIX 1: Import your custom ASYNCHRONOUS server client
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { createClient } from "@/lib/supabase/server";
+
+// Note: The 'cookies' and 'createServerComponentClient' imports are no longer needed
+// because they are handled internally by your custom createClient function.
 
 export default async function Layout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  // Create Supabase client using cookies for authentication context
-  const supabase = createServerComponentClient({ cookies })
+  // FIX 2: Initialize Supabase using await with your custom client
+  const supabase = await createClient();
 
   // Get current authenticated user
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect('/login')
+    // Must return redirect() in an async component
+    return redirect("/login");
   }
 
   // Get user profile
+  // Note: We should fetch only necessary fields or handle type safety if needed here.
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   if (profileError || !profile) {
-    redirect('/login')
+    // If profile is missing (e.g., new user), send them to onboarding instead of login
+    // If you don't have an onboarding page, /login is a safe fallback.
+    // Assuming you have an onboarding page based on prior context:
+    return redirect("/onboarding");
   }
 
-  return (
-    <DashboardLayout profile={profile}>
-      {children}
-    </DashboardLayout>
-  )
+  return <DashboardLayout profile={profile}>{children}</DashboardLayout>;
 }

@@ -1,24 +1,30 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,90 +32,105 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Loader2, Upload, X } from 'lucide-react'
-import { Database } from '@/types/database'
-import { generateLedgerId } from '@/lib/utils'
-import Image from 'next/image'
-import { useToast } from '@/hooks/use-toast'
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Upload, X } from "lucide-react";
+import { Database } from "@/types/database";
+import { generateLedgerId } from "@/lib/utils";
+import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
 
-type Ledger = Database['public']['Tables']['ledgers']['Insert'] & { updated_at?: string }
+type Ledger = Database["public"]["Tables"]["ledgers"]["Insert"] & {
+  updated_at?: string;
+};
 
-const ledgerSchema = z.object({
-  business_name: z.string().min(1, 'Business name is required'),
-  contact_person_name: z.string().optional(),
-  mobile_number: z.string()
-    .optional()
-    .refine((value) => !value || /^\d{10}$/.test(value), {
-      message: 'Mobile number must be 10 digits',
-    }),
-  email: z.string()
-    .email('Invalid email')
-    .optional()
-    .or(z.literal('')),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string(),
-  zip_code: z.string().optional().refine((value) => !value || /^\d{6}$/.test(value), {
-    message: 'ZIP code must be 6 digits',
-  }),
-  has_gst: z.boolean().default(false),
-  gst_number: z.string()
-    .optional()
-    .refine(
-      (value) =>
-        !value ||
-        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-          value.toUpperCase()
-        ),
-      {
-        message: 'Invalid GST number format',
+const ledgerSchema = z
+  .object({
+    business_name: z.string().min(1, "Business name is required"),
+    contact_person_name: z.string().optional(),
+    mobile_number: z
+      .string()
+      .optional()
+      .refine((value) => !value || /^\d{10}$/.test(value), {
+        message: "Mobile number must be 10 digits",
+      }),
+    email: z.string().email("Invalid email").optional().or(z.literal("")),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    district: z.string().optional(),
+    state: z.string().optional(),
+    country: z.string(),
+    zip_code: z
+      .string()
+      .optional()
+      .refine((value) => !value || /^\d{6}$/.test(value), {
+        message: "ZIP code must be 6 digits",
+      }),
+    has_gst: z.boolean().default(false),
+    gst_number: z
+      .string()
+      .optional()
+      .refine(
+        (value) =>
+          !value ||
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+            value.toUpperCase(),
+          ),
+        {
+          message: "Invalid GST number format",
+        },
+      ),
+    pan_number: z
+      .string()
+      .optional()
+      .refine(
+        (value) =>
+          !value || /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value.toUpperCase()),
+        {
+          message: "Invalid PAN number format (e.g., ABCDE1234F)",
+        },
+      ),
+  })
+  .refine(
+    (data) => {
+      if (data.has_gst && !data.gst_number) {
+        return false;
       }
-    ),
-  pan_number: z.string()
-    .optional()
-    .refine(
-      (value) =>
-        !value ||
-        /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value.toUpperCase()),
-      {
-        message: 'Invalid PAN number format (e.g., ABCDE1234F)',
+      if (!data.has_gst && !data.pan_number) {
+        return false;
       }
-    ),
-}).refine((data) => {
-  if (data.has_gst && !data.gst_number) {
-    return false;
-  }
-  if (!data.has_gst && !data.pan_number) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'Either GST number or PAN number is required',
-  path: ['gst_number'],
-})
+      return true;
+    },
+    {
+      message: "Either GST number or PAN number is required",
+      path: ["gst_number"],
+    },
+  );
 
-type LedgerFormData = z.infer<typeof ledgerSchema>
+type LedgerFormData = z.infer<typeof ledgerSchema>;
 
 interface LedgerFormProps {
-  userId: string
-  ledger?: Database['public']['Tables']['ledgers']['Row'] & { pan_number?: string | null }
-  isEdit?: boolean
+  userId: string;
+  ledger?: Database["public"]["Tables"]["ledgers"]["Row"] & {
+    pan_number?: string | null;
+  };
+  isEdit?: boolean;
 }
 
-export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) {
-  const router = useRouter()
-  const { showToast } = useToast()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [isAlertOpen, setIsAlertOpen] = useState(false)
+export function LedgerForm({
+  userId,
+  ledger,
+  isEdit = false,
+}: LedgerFormProps) {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(
-    ledger?.business_logo || null
-  )
+    ledger?.business_logo || null,
+  );
 
   const {
     register,
@@ -120,111 +141,113 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
   } = useForm({
     resolver: zodResolver(ledgerSchema),
     defaultValues: {
-      business_name: ledger?.business_name || '',
-      contact_person_name: ledger?.contact_person_name || '',
-      mobile_number: ledger?.mobile_number || '',
-      email: ledger?.email || '',
-      address: ledger?.address || '',
-      city: ledger?.city || '',
-      district: ledger?.district || '',
-      state: ledger?.state || '',
-      country: ledger?.country || 'India',
-      zip_code: ledger?.zip_code || '',
+      business_name: ledger?.business_name || "",
+      contact_person_name: ledger?.contact_person_name || "",
+      mobile_number: ledger?.mobile_number || "",
+      email: ledger?.email || "",
+      address: ledger?.address || "",
+      city: ledger?.city || "",
+      district: ledger?.district || "",
+      state: ledger?.state || "",
+      country: ledger?.country || "India",
+      zip_code: ledger?.zip_code || "",
       has_gst: !!ledger?.gst_number || false,
-      gst_number: ledger?.gst_number || '',
-      pan_number: ledger?.pan_number || '',
+      gst_number: ledger?.gst_number || "",
+      pan_number: ledger?.pan_number || "",
     },
-  })
+  });
 
-  const hasGst = watch('has_gst')
+  const hasGst = watch("has_gst");
 
   // Update form validation when has_gst changes
   const handleGstToggle = (value: boolean) => {
-    setValue('has_gst', value)
+    setValue("has_gst", value);
     if (value) {
       // If GST is selected, clear PAN number
-      setValue('pan_number', '')
+      setValue("pan_number", "");
     } else {
       // If PAN is selected, clear GST number
-      setValue('gst_number', '')
+      setValue("gst_number", "");
     }
-  }
+  };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg']
+      const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
       if (!allowedTypes.includes(file.type)) {
-        setError('Invalid file type. Please select a JPG, JPEG, or PNG image.')
-        setIsAlertOpen(true)
-        return
+        setError("Invalid file type. Please select a JPG, JPEG, or PNG image.");
+        setIsAlertOpen(true);
+        return;
       }
 
-      const maxSizeInMB = 3
+      const maxSizeInMB = 3;
       if (file.size > maxSizeInMB * 1024 * 1024) {
-        setError(`File size exceeds ${maxSizeInMB}MB. Please choose a smaller file.`)
-        setIsAlertOpen(true)
-        return
+        setError(
+          `File size exceeds ${maxSizeInMB}MB. Please choose a smaller file.`,
+        );
+        setIsAlertOpen(true);
+        return;
       }
 
-      setLogoFile(file)
-      const reader = new FileReader()
+      setLogoFile(file);
+      const reader = new FileReader();
       reader.onload = (e) => {
-        setLogoPreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-      setError('') // Clear any previous errors
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setError(""); // Clear any previous errors
     }
-  }
+  };
 
   const removeLogo = () => {
-    setLogoFile(null)
-    setLogoPreview(null)
-  }
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
 
   const uploadLogo = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-      const filePath = `ledgers/${fileName}`
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `ledgers/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('ledger-documents')
-        .upload(filePath, file)
+        .from("ledger-documents")
+        .upload(filePath, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError)
-        return null
+        console.error("Upload error:", uploadError);
+        return null;
       }
 
       const { data } = supabase.storage
-        .from('ledger-documents')
-        .getPublicUrl(filePath)
+        .from("ledger-documents")
+        .getPublicUrl(filePath);
 
-      return data.publicUrl
+      return data.publicUrl;
     } catch (error) {
-      console.error('Error uploading logo:', error)
-      return null
+      console.error("Error uploading logo:", error);
+      return null;
     }
-  }
+  };
 
   const onSubmit = async (data: LedgerFormData) => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
-      let logoUrl = ledger?.business_logo || null
+      let logoUrl = ledger?.business_logo || null;
 
       if (logoFile) {
-        logoUrl = await uploadLogo(logoFile)
+        logoUrl = await uploadLogo(logoFile);
         if (!logoUrl) {
-          setError('Failed to upload logo. Please try again.')
-          setLoading(false)
-          return
+          setError("Failed to upload logo. Please try again.");
+          setLoading(false);
+          return;
         }
       }
 
-      const { has_gst, ...restOfData } = data
+      const { has_gst, ...restOfData } = data;
 
       if (isEdit && ledger) {
         // UPDATE operation
@@ -232,19 +255,19 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
           ...restOfData,
           business_logo: logoUrl,
           updated_at: new Date().toISOString(),
-        }
+        };
 
         const { error: updateError } = await supabase
-          .from('ledgers')
+          .from("ledgers")
           .update(ledgerUpdateData)
-          .eq('ledger_id', ledger.ledger_id)
+          .eq("ledger_id", ledger.ledger_id);
 
         if (updateError) {
-          console.error('Supabase update error:', updateError)
-          setError(`Failed to update ledger: ${updateError.message}`)
-          return
+          console.error("Supabase update error:", updateError);
+          setError(`Failed to update ledger: ${updateError.message}`);
+          return;
         }
-        showToast('Ledger updated successfully!', 'success')
+        showToast("Ledger updated successfully!", "success");
       } else {
         // INSERT operation
         const ledgerInsertData: Ledger = {
@@ -252,37 +275,63 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
           ledger_id: generateLedgerId(),
           business_logo: logoUrl,
           created_by: userId,
-        }
+        };
 
         const { error: insertError } = await supabase
-          .from('ledgers')
-          .insert([ledgerInsertData])
+          .from("ledgers")
+          .insert([ledgerInsertData]);
 
         if (insertError) {
-          console.error('Supabase insert error:', insertError)
-          setError(`Failed to create ledger: ${insertError.message}`)
-          showToast(`Error: ${insertError.message}`, 'error')
-          return
+          console.error("Supabase insert error:", insertError);
+          setError(`Failed to create ledger: ${insertError.message}`);
+          showToast(`Error: ${insertError.message}`, "error");
+          return;
         }
-        showToast('Ledger created successfully!', 'success')
+        showToast("Ledger created successfully!", "success");
       }
 
       // Redirect and refresh on success
-      router.push('/dashboard/ledger/list')
-      router.refresh()
-
+      router.push("/dashboard/ledger/list");
+      router.refresh();
     } catch (err) {
-      console.error('Error saving ledger:', err)
-      setError('An unexpected error occurred. Please try again.')
-      showToast('An unexpected error occurred.', 'error')
+      console.error("Error saving ledger:", err);
+      setError("An unexpected error occurred. Please try again.");
+      showToast("An unexpected error occurred.", "error");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const indianStates = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-  ]
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+  ];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -294,7 +343,9 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
               <AlertDialogDescription>{error}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setIsAlertOpen(false)}>OK</AlertDialogAction>
+              <AlertDialogAction onClick={() => setIsAlertOpen(false)}>
+                OK
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -359,11 +410,13 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
             <Label htmlFor="business_name">Business Name *</Label>
             <Input
               id="business_name"
-              {...register('business_name')}
+              {...register("business_name")}
               placeholder="Enter business name"
             />
             {errors.business_name && (
-              <p className="text-sm text-red-600">{errors.business_name.message}</p>
+              <p className="text-sm text-red-600">
+                {errors.business_name.message}
+              </p>
             )}
           </div>
 
@@ -372,7 +425,7 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
               <Label htmlFor="contact_person_name">Contact Person</Label>
               <Input
                 id="contact_person_name"
-                {...register('contact_person_name')}
+                {...register("contact_person_name")}
                 placeholder="Enter contact person name"
               />
             </div>
@@ -410,11 +463,13 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
                 <Label htmlFor="gst_number">GST Number *</Label>
                 <Input
                   id="gst_number"
-                  {...register('gst_number')}
+                  {...register("gst_number")}
                   placeholder="Enter GST number (e.g., 12ABCDE1234PZ)"
                 />
                 {errors.gst_number && (
-                  <p className="text-sm text-red-600">{errors.gst_number.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.gst_number.message}
+                  </p>
                 )}
               </div>
             ) : (
@@ -422,14 +477,18 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
                 <Label htmlFor="pan_number">PAN Number *</Label>
                 <Input
                   id="pan_number"
-                  {...register('pan_number')}
+                  {...register("pan_number")}
                   placeholder="Enter PAN number (e.g., ABCDE1234F)"
                 />
                 {errors.pan_number && (
-                  <p className="text-sm text-red-600">{errors.pan_number.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.pan_number.message}
+                  </p>
                 )}
                 {errors.gst_number && !errors.pan_number && (
-                  <p className="text-sm text-red-600">{errors.gst_number.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.gst_number.message}
+                  </p>
                 )}
               </div>
             )}
@@ -449,12 +508,14 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
               <Label htmlFor="mobile_number">Mobile Number</Label>
               <Input
                 id="mobile_number"
-                {...register('mobile_number')}
+                {...register("mobile_number")}
                 placeholder="Enter mobile number"
               />
               {errors.mobile_number && (
-               <p className="text-sm text-red-600">{errors.mobile_number.message}</p>
-             )}
+                <p className="text-sm text-red-600">
+                  {errors.mobile_number.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -462,7 +523,7 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
               <Input
                 id="email"
                 type="email"
-                {...register('email')}
+                {...register("email")}
                 placeholder="Enter email address"
               />
               {errors.email && (
@@ -484,7 +545,7 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
             <Label htmlFor="address">Address</Label>
             <Textarea
               id="address"
-              {...register('address')}
+              {...register("address")}
               placeholder="Enter business address"
               rows={3}
             />
@@ -493,18 +554,14 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                {...register('city')}
-                placeholder="Enter city"
-              />
+              <Input id="city" {...register("city")} placeholder="Enter city" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="district">District</Label>
               <Input
                 id="district"
-                {...register('district')}
+                {...register("district")}
                 placeholder="Enter district"
               />
             </div>
@@ -512,13 +569,13 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
               <Select
-                onValueChange={(value) => setValue('state', value)}
-                defaultValue={ledger?.state || ''}
+                onValueChange={(value) => setValue("state", value)}
+                defaultValue={ledger?.state || ""}
               >
                 <SelectTrigger id="state">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
-                <SelectContent className='bg-white' >
+                <SelectContent className="bg-white">
                   {indianStates.map((state) => (
                     <SelectItem key={state} value={state}>
                       {state}
@@ -532,22 +589,20 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
               <Label htmlFor="zip_code">ZIP Code</Label>
               <Input
                 id="zip_code"
-                {...register('zip_code')}
+                {...register("zip_code")}
                 placeholder="Enter ZIP code"
               />
               {errors.zip_code && (
-                <p className="text-sm text-red-600">{errors.zip_code.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.zip_code.message}
+                </p>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="country">Country</Label>
-            <Input
-              id="country"
-              {...register('country')}
-              placeholder="India"
-            />
+            <Input id="country" {...register("country")} placeholder="India" />
           </div>
         </CardContent>
       </Card>
@@ -558,20 +613,22 @@ export function LedgerForm({ userId, ledger, isEdit = false }: LedgerFormProps) 
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEdit ? 'Updating...' : 'Creating...'}
+              {isEdit ? "Updating..." : "Creating..."}
             </>
+          ) : isEdit ? (
+            "Update Ledger"
           ) : (
-            isEdit ? 'Update Ledger' : 'Create Ledger'
+            "Create Ledger"
           )}
         </Button>
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push('/dashboard/ledger/list')}
+          onClick={() => router.push("/dashboard/ledger/list")}
         >
           Cancel
         </Button>
       </div>
     </form>
-  )
+  );
 }

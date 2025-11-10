@@ -1,4 +1,5 @@
 ## Qwen Added Memories
+
 - Project: Bhaktinandan OMS - A textile/weaving business management system built with Next.js 14+, TypeScript, Supabase, Tailwind CSS, and shadcn/ui. It manages inventory, ledgers, production (weaver challans), purchase orders, and user roles (Admin, Manager, User).
 - Authentication: The system uses Supabase Auth with email/password authentication. Users must select their role (Admin/Manager/User) during login. Role-based access control is implemented with protected routes and database row-level security policies.
 - Database Structure: Core tables include profiles (user profiles), products (inventory), ledgers (business partners), purchase_orders, weaver_challans (production), expenses, and logs for changes. All tables have Row Level Security (RLS) policies based on user roles.

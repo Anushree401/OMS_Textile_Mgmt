@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import { Database } from '@/types/database';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase/client";
+import { Database } from "@/types/database";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
-import Link from 'next/link';
+import Link from "next/link";
 
-type Expense = Database['public']['Tables']['expenses']['Row'] & {
+type Expense = Database["public"]["Tables"]["expenses"]["Row"] & {
   weaver_challans?: { id: number } | null;
 };
 
@@ -25,13 +32,13 @@ export default function ExpenseList({ ledgerId }: ExpenseListProps) {
     const fetchExpenses = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from('expenses')
-        .select('*, weaver_challans(id)')
-        .eq('ledger_id', ledgerId)
-        .order('expense_date', { ascending: false });
+        .from("expenses")
+        .select("*, weaver_challans(id)")
+        .eq("ledger_id", ledgerId)
+        .order("expense_date", { ascending: false });
 
       if (error) {
-        console.error('Error fetching expenses:', error);
+        console.error("Error fetching expenses:", error);
       } else {
         setExpenses(data || []);
       }
@@ -70,8 +77,12 @@ export default function ExpenseList({ ledgerId }: ExpenseListProps) {
                 <TableCell>{expense.expense_date}</TableCell>
                 <TableCell>
                   {expense.weaver_challans?.id ? (
-                    <Link href={`/dashboard/production/weaver-challan/${expense.weaver_challans.id}`}>
-                      <span className="text-blue-600 hover:underline">{expense.challan_no}</span>
+                    <Link
+                      href={`/dashboard/production/weaver-challan/${expense.weaver_challans.id}`}
+                    >
+                      <span className="text-blue-600 hover:underline">
+                        {expense.challan_no}
+                      </span>
                     </Link>
                   ) : (
                     expense.challan_no
@@ -79,14 +90,18 @@ export default function ExpenseList({ ledgerId }: ExpenseListProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {expense.expense_for.map(item => (
+                    {expense.expense_for.map((item) => (
                       <Badge key={item} variant="secondary">
-                        {item === 'Other' ? expense.other_expense_description || 'Other' : item}
+                        {item === "Other"
+                          ? expense.other_expense_description || "Other"
+                          : item}
                       </Badge>
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">₹{expense.cost.toFixed(2)}</TableCell>
+                <TableCell className="text-right">
+                  ₹{expense.cost.toFixed(2)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

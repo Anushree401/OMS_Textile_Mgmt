@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import NProgress from 'nprogress';
-import './nprogress.css';
+import { useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import NProgress from "nprogress";
+import "./nprogress.css";
 
 export function PageProgressBar() {
   const pathname = usePathname();
@@ -23,11 +23,11 @@ export function PageProgressBar() {
     };
 
     const handleMutation: MutationCallback = () => {
-      const anchorElements = document.querySelectorAll('a');
-      anchorElements.forEach(anchor => {
+      const anchorElements = document.querySelectorAll("a");
+      anchorElements.forEach((anchor) => {
         if (!anchor.dataset.nprogressHandled) {
-          anchor.addEventListener('click', handleAnchorClick);
-          anchor.dataset.nprogressHandled = 'true';
+          anchor.addEventListener("click", handleAnchorClick);
+          anchor.dataset.nprogressHandled = "true";
         }
       });
     };
@@ -40,8 +40,8 @@ export function PageProgressBar() {
 
     return () => {
       mutationObserver.disconnect();
-      document.querySelectorAll('a').forEach(anchor => {
-        anchor.removeEventListener('click', handleAnchorClick);
+      document.querySelectorAll("a").forEach((anchor) => {
+        anchor.removeEventListener("click", handleAnchorClick);
         delete anchor.dataset.nprogressHandled;
       });
     };

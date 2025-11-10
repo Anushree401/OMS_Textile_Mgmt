@@ -1,42 +1,42 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-type ChangeValue = string | number | boolean | null
+type ChangeValue = string | number | boolean | null;
 
 type Changes = {
   [key: string]: {
-    old: ChangeValue
-    new: ChangeValue
-  }
-}
+    old: ChangeValue;
+    new: ChangeValue;
+  };
+};
 
 type ChangeLog = {
-  id: number
-  challan_id: number
-  changed_by: string | null
-  changes: Changes
-  changed_at: string
+  id: number;
+  challan_id: number;
+  changed_by: string | null;
+  changes: Changes;
+  changed_at: string;
   profile: {
-    first_name: string | null
-    last_name: string | null
-  } | null
-}
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+};
 
 export default function WeaverChallanLogsPage() {
-  const params = useParams()
-  const id = params.id as string
-  const router = useRouter()
-  const [logs, setLogs] = useState<ChangeLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
+  const [logs, setLogs] = useState<ChangeLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -46,10 +46,10 @@ export default function WeaverChallanLogsPage() {
         setLoading(true);
         // Step 1: Fetch logs
         const { data: logsData, error: logsError } = await supabase
-          .from('weaver_challan_logs')
-          .select('*')
-          .eq('challan_id', parseInt(id))
-          .order('changed_at', { ascending: false });
+          .from("weaver_challan_logs")
+          .select("*")
+          .eq("challan_id", parseInt(id))
+          .order("changed_at", { ascending: false });
 
         if (logsError) {
           throw logsError;
@@ -61,29 +61,30 @@ export default function WeaverChallanLogsPage() {
         }
 
         // Step 2: Fetch associated profiles
-        const userIds = logsData.map(log => log.changed_by).filter(Boolean);
+        const userIds = logsData.map((log) => log.changed_by).filter(Boolean);
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name')
-            .in('id', userIds);
+            .from("profiles")
+            .select("id, first_name, last_name")
+            .in("id", userIds);
 
           if (profilesError) {
             throw profilesError;
           }
 
           // Step 3: Combine logs with profiles
-          const combinedLogs = logsData.map(log => {
-            const profile = profilesData.find(p => p.id === log.changed_by) || null;
+          const combinedLogs = logsData.map((log) => {
+            const profile =
+              profilesData.find((p) => p.id === log.changed_by) || null;
             return { ...log, profile };
           });
           setLogs(combinedLogs);
         } else {
-          setLogs(logsData.map(log => ({ ...log, profile: null })));
+          setLogs(logsData.map((log) => ({ ...log, profile: null })));
         }
-
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        const errorMessage =
+          err instanceof Error ? err.message : "An unknown error occurred";
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -93,25 +94,32 @@ export default function WeaverChallanLogsPage() {
     fetchLogs();
   }, [id]);
 
-  const renderChange = (key: string, change: { old: ChangeValue; new: ChangeValue }) => {
+  const renderChange = (
+    key: string,
+    change: { old: ChangeValue; new: ChangeValue },
+  ) => {
     return (
       <div key={key} className="mb-2">
-        <span className="font-semibold text-gray-700">{key.replace(/_/g, ' ')}:</span>
+        <span className="font-semibold text-gray-700">
+          {key.replace(/_/g, " ")}:
+        </span>
         <div className="flex items-center">
-          <span className="text-red-600 line-through">{String(change.old)}</span>
+          <span className="text-red-600 line-through">
+            {String(change.old)}
+          </span>
           <span className="mx-2">→</span>
           <span className="text-green-600">{String(change.new)}</span>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-red-500">Error: {error}</div>
+    return <div className="text-red-500">Error: {error}</div>;
   }
 
   return (
@@ -131,12 +139,15 @@ export default function WeaverChallanLogsPage() {
           </CardContent>
         </Card>
       ) : (
-        logs.map(log => (
+        logs.map((log) => (
           <Card key={log.id}>
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>
-                  Change by {log.profile ? `${log.profile.first_name} ${log.profile.last_name}`.trim() : 'Unknown User'}
+                  Change by{" "}
+                  {log.profile
+                    ? `${log.profile.first_name} ${log.profile.last_name}`.trim()
+                    : "Unknown User"}
                 </span>
                 <Badge variant="secondary">
                   {new Date(log.changed_at).toLocaleString()}
@@ -145,8 +156,11 @@ export default function WeaverChallanLogsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {Object.entries(log.changes).map(([key, value]) => 
-                  renderChange(key, value as { old: ChangeValue; new: ChangeValue })
+                {Object.entries(log.changes).map(([key, value]) =>
+                  renderChange(
+                    key,
+                    value as { old: ChangeValue; new: ChangeValue },
+                  ),
                 )}
               </div>
             </CardContent>
@@ -154,5 +168,5 @@ export default function WeaverChallanLogsPage() {
         ))
       )}
     </div>
-  )
+  );
 }

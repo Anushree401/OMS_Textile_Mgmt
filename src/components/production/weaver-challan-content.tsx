@@ -1,194 +1,245 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
-import { 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { 
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   FileText,
   Truck,
   Calendar,
-  History
-} from 'lucide-react'
-import { Database, Json } from '@/types/database'
-import { formatDate, formatCurrency } from '@/lib/utils'
-import { WeaverChallanForm } from './weaver-challan-form'
+  History,
+} from "lucide-react";
+import { Database, Json } from "@/types/database";
+import { formatDate, formatCurrency } from "@/lib/utils";
+import { WeaverChallanForm } from "./weaver-challan-form";
 
-type WeaverChallan = Database['public']['Tables']['weaver_challans']['Row'] & {
+type WeaverChallan = Database["public"]["Tables"]["weaver_challans"]["Row"] & {
   ledgers?: {
-    business_name: string
-    contact_person_name: string | null
-  } | null
-  delivery_at?: string | null
-}
+    business_name: string;
+    contact_person_name: string | null;
+  } | null;
+  delivery_at?: string | null;
+};
 
-type Ledger = Database['public']['Tables']['ledgers']['Row']
-type UserRole = Database['public']['Tables']['profiles']['Row']['user_role']
+type Ledger = Database["public"]["Tables"]["ledgers"]["Row"];
+type UserRole = Database["public"]["Tables"]["profiles"]["Row"]["user_role"];
 
 interface WeaverChallanContentProps {
-  challans: WeaverChallan[]
-  totalCount: number
-  ledgers: Ledger[]
-  userRole: UserRole
-  userId: string
-  userName: string
+  challans: WeaverChallan[];
+  totalCount: number;
+  ledgers: Ledger[];
+  userRole: UserRole;
+  userId: string;
+  userName: string;
 }
 
-export function WeaverChallanContent({ 
-  challans, 
-  totalCount, 
-  ledgers, 
-  userRole, 
-  userId, 
-  userName 
+export function WeaverChallanContent({
+  challans,
+  totalCount,
+  ledgers,
+  userRole,
+  userId,
+  userName,
 }: WeaverChallanContentProps) {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [partyFilter, setPartyFilter] = useState('')
-  const [startDateFilter, setStartDateFilter] = useState('')
-  const [endDateFilter, setEndDateFilter] = useState('')
-  const [qualityFilter, setQualityFilter] = useState('')
-  
-  const canEdit = userRole === 'Admin' || userRole === 'Manager'
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [partyFilter, setPartyFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const [qualityFilter, setQualityFilter] = useState("");
 
-  const filteredChallans = challans.filter(challan => {
-    const matchesSearch = !searchTerm || 
+  const canEdit = userRole === "Admin" || userRole === "Manager";
+
+  const filteredChallans = challans.filter((challan) => {
+    const matchesSearch =
+      !searchTerm ||
       challan.batch_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       challan.challan_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
       challan.ms_party_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (challan.ledgers?.business_name && challan.ledgers.business_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      (challan.ledgers?.business_name &&
+        challan.ledgers.business_name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
 
-    const matchesParty = !partyFilter || partyFilter === 'all' || challan.ledger_id === partyFilter
-    
-    const matchesDate = (!startDateFilter || new Date(challan.challan_date) >= new Date(startDateFilter)) &&
-                        (!endDateFilter || new Date(challan.challan_date) < new Date(new Date(endDateFilter).setDate(new Date(endDateFilter).getDate() + 1)))
+    const matchesParty =
+      !partyFilter ||
+      partyFilter === "all" ||
+      challan.ledger_id === partyFilter;
 
-    const matchesQuality = !qualityFilter || qualityFilter === 'all' ||
-      (challan.quality_details && Array.isArray(challan.quality_details) &&
-       challan.quality_details.some(q =>
-         q && typeof q === 'object' && 'quality_name' in q && typeof q.quality_name === 'string' &&
-         q.quality_name.toLowerCase().includes(qualityFilter.toLowerCase())
-       ))
+    const matchesDate =
+      (!startDateFilter ||
+        new Date(challan.challan_date) >= new Date(startDateFilter)) &&
+      (!endDateFilter ||
+        new Date(challan.challan_date) <
+          new Date(
+            new Date(endDateFilter).setDate(
+              new Date(endDateFilter).getDate() + 1,
+            ),
+          ));
 
-    return matchesSearch && matchesParty && matchesDate && matchesQuality
-  })
+    const matchesQuality =
+      !qualityFilter ||
+      qualityFilter === "all" ||
+      (challan.quality_details &&
+        Array.isArray(challan.quality_details) &&
+        challan.quality_details.some(
+          (q) =>
+            q &&
+            typeof q === "object" &&
+            "quality_name" in q &&
+            typeof q.quality_name === "string" &&
+            q.quality_name.toLowerCase().includes(qualityFilter.toLowerCase()),
+        ));
+
+    return matchesSearch && matchesParty && matchesDate && matchesQuality;
+  });
 
   const resetFilters = () => {
-    setSearchTerm('')
-    setPartyFilter('')
-    setStartDateFilter('')
-    setEndDateFilter('')
-    setQualityFilter('')
-  }
+    setSearchTerm("");
+    setPartyFilter("");
+    setStartDateFilter("");
+    setEndDateFilter("");
+    setQualityFilter("");
+  };
 
-  const handleDeleteWeaverChallan = async (challanId: number, challanNo: string) => {
-    if (!confirm(`Are you sure you want to delete Weaver Challan "${challanNo}"? This action cannot be undone.`)) {
-      return
+  const handleDeleteWeaverChallan = async (
+    challanId: number,
+    challanNo: string,
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete Weaver Challan "${challanNo}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(challanId)
+    setDeletingId(challanId);
 
     try {
       const { error } = await supabase
-        .from('weaver_challans')
+        .from("weaver_challans")
         .delete()
-        .eq('id', challanId)
+        .eq("id", challanId);
 
       if (error) {
-        toast.error('Failed to delete weaver challan. Please try again.')
-        return
+        toast.error("Failed to delete weaver challan. Please try again.");
+        return;
       }
 
-      toast.success(`Challan "${challanNo}" has been deleted successfully.`)
+      toast.success(`Challan "${challanNo}" has been deleted successfully.`);
       // Refresh the page to show updated data
-      router.refresh()
+      router.refresh();
     } catch (err) {
-      console.error('Error deleting weaver challan:', err)
-      toast.error('An unexpected error occurred. Please try again.')
+      console.error("Error deleting weaver challan:", err);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   const getStatusBadge = (challan: WeaverChallan) => {
     // You can add status logic based on your business rules
-    const isRecent = new Date(challan.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const isRecent =
+      new Date(challan.created_at) >
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     return isRecent ? (
-      <Badge variant="default" className="bg-green-100 text-green-700">Active</Badge>
+      <Badge variant="default" className="bg-green-100 text-green-700">
+        Active
+      </Badge>
     ) : (
-      <Badge variant="secondary" className="bg-blue-100 text-blue-700">Completed</Badge>
-    )
-  }
+      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+        Completed
+      </Badge>
+    );
+  };
 
   const parseQualityDetails = (qualityDetails: Json | null) => {
-    if (!qualityDetails) return []
+    if (!qualityDetails) return [];
     try {
-      return typeof qualityDetails === 'string' 
+      return typeof qualityDetails === "string"
         ? JSON.parse(qualityDetails)
-        : qualityDetails
+        : qualityDetails;
     } catch {
-      return []
+      return [];
     }
-  }
+  };
 
   if (showCreateForm) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create Weaver Challan</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create Weaver Challan
+            </h1>
             <p className="text-gray-600 mt-1">
               Create a new production challan for weaving process
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowCreateForm(false)}
-          >
+          <Button variant="outline" onClick={() => setShowCreateForm(false)}>
             Back to List
           </Button>
         </div>
 
-        <WeaverChallanForm 
+        <WeaverChallanForm
           ledgers={ledgers}
           userId={userId}
           userName={userName}
           onSuccess={() => {
-            setShowCreateForm(false)
-            router.refresh()
+            setShowCreateForm(false);
+            router.refresh();
           }}
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -198,7 +249,8 @@ export function WeaverChallanContent({
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Weaver Challans</h1>
           <p className="text-gray-600 mt-1">
-            Manage production challans for weaving process ({totalCount} total challans)
+            Manage production challans for weaving process ({totalCount} total
+            challans)
           </p>
         </div>
         {canEdit && (
@@ -217,7 +269,8 @@ export function WeaverChallanContent({
             Search & Filter Challans
           </CardTitle>
           <CardDescription>
-            Use the search bar for quick searches or expand the filters for more options.
+            Use the search bar for quick searches or expand the filters for more
+            options.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -242,10 +295,13 @@ export function WeaverChallanContent({
                       <SelectTrigger>
                         <SelectValue placeholder="All Parties" />
                       </SelectTrigger>
-                      <SelectContent className='bg-white'>
+                      <SelectContent className="bg-white">
                         <SelectItem value="all">All Parties</SelectItem>
-                        {ledgers.map(ledger => (
-                          <SelectItem key={ledger.ledger_id} value={ledger.ledger_id}>
+                        {ledgers.map((ledger) => (
+                          <SelectItem
+                            key={ledger.ledger_id}
+                            value={ledger.ledger_id}
+                          >
                             {ledger.business_name}
                           </SelectItem>
                         ))}
@@ -254,19 +310,30 @@ export function WeaverChallanContent({
                   </div>
                   <div className="space-y-2">
                     <Label>Start Date</Label>
-                    <Input type="date" value={startDateFilter} onChange={e => setStartDateFilter(e.target.value)} />
+                    <Input
+                      type="date"
+                      value={startDateFilter}
+                      onChange={(e) => setStartDateFilter(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>End Date</Label>
-                    <Input type="date" value={endDateFilter} onChange={e => setEndDateFilter(e.target.value)} />
+                    <Input
+                      type="date"
+                      value={endDateFilter}
+                      onChange={(e) => setEndDateFilter(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Quality Name</Label>
-                    <Select value={qualityFilter} onValueChange={setQualityFilter}>
+                    <Select
+                      value={qualityFilter}
+                      onValueChange={setQualityFilter}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="All Qualities" />
                       </SelectTrigger>
-                      <SelectContent className='bg-white'>
+                      <SelectContent className="bg-white">
                         <SelectItem value="all">All Qualities</SelectItem>
                         <SelectItem value="Cotton">Cotton</SelectItem>
                         <SelectItem value="Linen">Linen</SelectItem>
@@ -288,7 +355,12 @@ export function WeaverChallanContent({
                     </Select>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="mt-4" onClick={resetFilters}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={resetFilters}
+                >
                   Reset Filters
                 </Button>
               </AccordionContent>
@@ -297,7 +369,7 @@ export function WeaverChallanContent({
         </CardContent>
       </Card>
 
-        {/* Summary Cards */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -307,16 +379,18 @@ export function WeaverChallanContent({
             <div className="text-sm text-gray-600">Filtered Challans</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              {filteredChallans.reduce((sum, challan) => sum + challan.total_grey_mtr, 0).toFixed(2)}
+              {filteredChallans
+                .reduce((sum, challan) => sum + challan.total_grey_mtr, 0)
+                .toFixed(2)}
             </div>
             <div className="text-sm text-gray-600">Total Grey Mtr</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-purple-600">
@@ -325,11 +399,11 @@ export function WeaverChallanContent({
             <div className="text-sm text-gray-600">Total Taka</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-orange-600">
-              {filteredChallans.filter(c => c.transport_name).length}
+              {filteredChallans.filter((c) => c.transport_name).length}
             </div>
             <div className="text-sm text-gray-600">With Transport</div>
           </CardContent>
@@ -365,19 +439,23 @@ export function WeaverChallanContent({
                   <TableCell>
                     <div>
                       <div className="font-medium">{challan.batch_number}</div>
-                      <div className="text-sm text-gray-500 font-mono">{challan.challan_no}</div>
+                      <div className="text-sm text-gray-500 font-mono">
+                        {challan.challan_no}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">{challan.ms_party_name}</div>
                     {challan.delivery_at && (
-                      <div className="text-sm text-gray-500">→ {challan.delivery_at}</div>
+                      <div className="text-sm text-gray-500">
+                        → {challan.delivery_at}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">
-                        {challan.ledgers?.business_name || 'N/A'}
+                        {challan.ledgers?.business_name || "N/A"}
                       </div>
                       {challan.ledgers?.contact_person_name && (
                         <div className="text-sm text-gray-500">
@@ -389,9 +467,7 @@ export function WeaverChallanContent({
                   <TableCell className="font-mono">
                     {challan.total_grey_mtr.toFixed(2)}
                   </TableCell>
-                  <TableCell className="font-mono">
-                    {challan.taka}
-                  </TableCell>
+                  <TableCell className="font-mono">{challan.taka}</TableCell>
                   <TableCell>
                     {challan.transport_name ? (
                       <div>
@@ -419,7 +495,16 @@ export function WeaverChallanContent({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button variant="outline" size="icon" onClick={() => window.open(`/print/weaver-challan/${challan.id}`, '_blank')}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        window.open(
+                          `/print/weaver-challan/${challan.id}`,
+                          "_blank",
+                        )
+                      }
+                    >
                       <FileText className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -430,35 +515,54 @@ export function WeaverChallanContent({
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className=' bg-white ' >
+                      <DropdownMenuContent align="end" className=" bg-white ">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/production/weaver-challan/${challan.id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/production/weaver-challan/${challan.id}`,
+                            )
+                          }
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
                         {canEdit && (
                           <DropdownMenuItem
-                            onClick={() => router.push(`/dashboard/production/weaver-challan/${challan.id}/edit`)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/production/weaver-challan/${challan.id}/edit`,
+                              )
+                            }
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/production/weaver-challan/${challan.id}/logs`)}
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/production/weaver-challan/${challan.id}/logs`,
+                            )
+                          }
                         >
                           <History className="mr-2 h-4 w-4" />
                           Change Logs
                         </DropdownMenuItem>
                         {canEdit && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeleteWeaverChallan(challan.id, challan.challan_no)}
+                            onClick={() =>
+                              handleDeleteWeaverChallan(
+                                challan.id,
+                                challan.challan_no,
+                              )
+                            }
                             disabled={deletingId === challan.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {deletingId === challan.id ? 'Deleting...' : 'Delete'}
+                            {deletingId === challan.id
+                              ? "Deleting..."
+                              : "Delete"}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -468,7 +572,7 @@ export function WeaverChallanContent({
               ))}
             </TableBody>
           </Table>
-          
+
           {filteredChallans.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-500">No challans found</div>
@@ -479,8 +583,6 @@ export function WeaverChallanContent({
           )}
         </CardContent>
       </Card>
-
-    
     </div>
-  )
+  );
 }

@@ -1,74 +1,118 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Edit, Building2, Phone, Mail, MapPin, FileText, Printer } from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { formatDate } from '@/lib/utils'
-import Passbook from '@/components/ledger/passbook'
-import ChallanList from '@/components/ledger/challan-list'
-import ExpenseList from '@/components/ledger/expense-list'
-import PaymentVoucherList from '@/components/ledger/payment-voucher-list'
-import IsteachingChallanList from '@/components/ledger/isteaching-challan-list'
-import LedgerSummary from '@/components/ledger/ledger-summary'
+import ChallanList from "@/components/ledger/challan-list";
+import ExpenseList from "@/components/ledger/expense-list";
+import IsteachingChallanList from "@/components/ledger/isteaching-challan-list";
+import LedgerSummary from "@/components/ledger/ledger-summary";
+import Passbook from "@/components/ledger/passbook";
+import PaymentVoucherList from "@/components/ledger/payment-voucher-list";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
- AccordionTrigger,
-} from '@/components/ui/accordion'
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
+import { Database } from "@/types/supabase";
+import {
+  ArrowLeft,
+  Building2,
+  Edit,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+  Printer,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+
+// Types
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type LedgerRow = Database["public"]["Tables"]["ledgers"]["Row"];
 
 interface LedgerDetailPageProps {
-  params: Promise<{ id: string }>
+  params: { id: string };
 }
 
-export default async function LedgerDetailPage({ params }: LedgerDetailPageProps) {
-  // Await the params
-  const { id } = await params
-  
-  const supabase = createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+// Helper: map all nullable ledger fields to safe default values
+function cleanupLedger(row: LedgerRow) {
+  return {
+    ...row,
+    business_logo: row.business_logo ?? "",
+    business_name: row.business_name ?? "",
+    contact_person_name: row.contact_person_name ?? "",
+    gst_number: row.gst_number ?? "",
+    pan_number: row.pan_number ?? "",
+    mobile_number: row.mobile_number ?? "",
+    email: row.email ?? "",
+    address: row.address ?? "",
+    city: row.city ?? "",
+    district: row.district ?? "",
+    state: row.state ?? "",
+    country: row.country ?? "",
+    zip_code: row.zip_code ?? "",
+    edit_logs: row.edit_logs ?? "",
+    created_at: row.created_at ?? "",
+    updated_at: row.updated_at ?? "",
+    ledger_id: row.ledger_id ?? "",
+  };
+}
 
-  // Get user profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+export default async function LedgerDetailPage({
+  params,
+}: LedgerDetailPageProps) {
+  const { id } = params;
 
-  if (!profile) {
-    redirect('/login')
-  }
+  // Always await server client creation
+  const supabase = await createServerSupabaseClient();
 
-  // Fetch ledger details
-  const { data: ledger, error } = await supabase
-    .from('ledgers')
-    .select('*')
-    .eq('ledger_id', id)
-    .single()
+  // User fetch
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return redirect("/login");
 
-  // Fetch weaver challans where this ledger is a vendor
+  // Profile fetch
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+  const profile = profileData as ProfileRow | null;
+  if (!profile) return redirect("/login");
+
+  // Ledger fetch
+  const { data: ledgerData, error } = await supabase
+    .from("ledgers")
+    .select("*")
+    .eq("ledger_id", id)
+    .single();
+  if (error || !ledgerData) return notFound();
+  const ledger = cleanupLedger(ledgerData);
+
+  // Vendor challans fetch
   const { data: vendorChallans } = await supabase
-    .from('weaver_challans')
-    .select('*')
-    .eq('vendor_ledger_id', id)
+    .from("weaver_challans")
+    .select("*")
+    .eq("vendor_ledger_id", id);
 
-  if (error || !ledger) {
-    notFound()
-  }
+  // Edit permission
+  const canEdit =
+    profile &&
+    (profile.user_role === "Admin" || profile.user_role === "Manager");
 
-  const canEdit = profile.user_role === 'Admin' || profile.user_role === 'Manager'
-
+  // Render
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link href="/dashboard/ledger/list">
@@ -103,7 +147,6 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Business Logo */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -126,46 +169,56 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
                   <div className="text-gray-400 text-center">
                     <Building2 className="h-16 w-16 mx-auto mb-4" />
                     <p>No logo available</p>
-                </div>
+                  </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Ledger Summary */}
           <LedgerSummary ledgerId={ledger.ledger_id} />
         </div>
 
-        {/* Business Information */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
+          {/* Business Information */}
           <Card>
             <CardHeader>
               <CardTitle>Business Information</CardTitle>
-              <CardDescription>Primary business details and identification</CardDescription>
+              <CardDescription>
+                Primary business details and identification
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Ledger ID</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Ledger ID
+                  </label>
                   <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                     {ledger.ledger_id}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Business Name</label>
-                  <p className="text-lg font-semibold">{ledger.business_name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Contact Person</label>
-                  <p className="text-gray-900">{ledger.contact_person_name || 'Not specified'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Business Name
+                  </label>
+                  <p className="text-lg font-semibold">
+                    {ledger.business_name}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    {ledger.gst_number ? 'GST Number' : 'PAN Number'}
+                    Contact Person
+                  </label>
+                  <p className="text-gray-900">
+                    {ledger.contact_person_name || "Not specified"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    {ledger.gst_number ? "GST Number" : "PAN Number"}
                   </label>
                   <p className="font-mono text-sm">
-                    {ledger.gst_number || ledger.pan_number || 'Not provided'}
+                    {ledger.gst_number || ledger.pan_number || "Not provided"}
                   </p>
                 </div>
               </div>
@@ -186,15 +239,23 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
                 <div className="flex items-center space-x-3">
                   <Phone className="h-4 w-4 text-gray-400" />
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Mobile Number</label>
-                    <p className="text-gray-900">{ledger.mobile_number || 'Not provided'}</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      Mobile Number
+                    </label>
+                    <p className="text-gray-900">
+                      {ledger.mobile_number || "Not provided"}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Mail className="h-4 w-4 text-gray-40" />
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Email</label>
-                    <p className="text-gray-900">{ledger.email || 'Not provided'}</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      Email
+                    </label>
+                    <p className="text-gray-900">
+                      {ledger.email || "Not provided"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -212,29 +273,53 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Address</label>
-                <p className="text-gray-900">{ledger.address || 'Not provided'}</p>
+                <label className="text-sm font-medium text-gray-700">
+                  Address
+                </label>
+                <p className="text-gray-900">
+                  {ledger.address || "Not provided"}
+                </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">City</label>
-                  <p className="text-gray-900">{ledger.city || 'Not specified'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    City
+                  </label>
+                  <p className="text-gray-900">
+                    {ledger.city || "Not specified"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">District</label>
-                  <p className="text-gray-900">{ledger.district || 'Not specified'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    District
+                  </label>
+                  <p className="text-gray-900">
+                    {ledger.district || "Not specified"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">State</label>
-                  <p className="text-gray-900">{ledger.state || 'Not specified'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    State
+                  </label>
+                  <p className="text-gray-900">
+                    {ledger.state || "Not specified"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Country</label>
-                  <p className="text-gray-900">{ledger.country || 'Not specified'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Country
+                  </label>
+                  <p className="text-gray-900">
+                    {ledger.country || "Not specified"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">ZIP Code</label>
-                  <p className="text-gray-900">{ledger.zip_code || 'Not specified'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    ZIP Code
+                  </label>
+                  <p className="text-gray-900">
+                    {ledger.zip_code || "Not specified"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -247,23 +332,37 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
                 <FileText className="h-5 w-5 mr-2" />
                 Record Information
               </CardTitle>
-              <CardDescription>Creation and modification details</CardDescription>
+              <CardDescription>
+                Creation and modification details
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Created At</label>
-                  <p className="text-gray-900">{formatDate(ledger.created_at)}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Created At
+                  </label>
+                  <p className="text-gray-900">
+                    {formatDate(ledger.created_at)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Last Updated</label>
-                  <p className="text-gray-900">{formatDate(ledger.updated_at)}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Last Updated
+                  </label>
+                  <p className="text-gray-900">
+                    {formatDate(ledger.updated_at)}
+                  </p>
                 </div>
               </div>
               {ledger.edit_logs && (
                 <div className="mt-4">
-                  <label className="text-sm font-medium text-gray-700">Edit History</label>
-                  <p className="text-sm text-gray-600 mt-1">{ledger.edit_logs}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Edit History
+                  </label>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {ledger.edit_logs}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -282,7 +381,10 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
               <AccordionItem value="vendor-passbook">
                 <AccordionTrigger>Vendor Passbook</AccordionTrigger>
                 <AccordionContent>
-                  <Passbook ledgerId={ledger.ledger_id} vendorChallans={vendorChallans} />
+                  <Passbook
+                    ledgerId={ledger.ledger_id}
+                    vendorChallans={vendorChallans}
+                  />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -316,12 +418,12 @@ export default async function LedgerDetailPage({ params }: LedgerDetailPageProps
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="isteaching-challans">
-          <AccordionTrigger>Stitching  Challans</AccordionTrigger>
+          <AccordionTrigger>Stitching Challans</AccordionTrigger>
           <AccordionContent>
             <IsteachingChallanList ledgerId={ledger.ledger_id} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
     </div>
-  )
+  );
 }

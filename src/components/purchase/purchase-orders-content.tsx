@@ -1,143 +1,173 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { 
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   FileText,
   Calendar,
-  DollarSign
-} from 'lucide-react'
-import { Database } from '@/types/database'
-import { formatDate, formatCurrency } from '@/lib/utils'
+  DollarSign,
+} from "lucide-react";
+import { Database } from "@/types/database";
+import { formatDate, formatCurrency } from "@/lib/utils";
 
 type PurchaseOrder = {
-  id: number
-  po_number: string
-  po_date: string
-  supplier_name: string
-  ledger_id: string | null
-  total_amount: number
-  status: 'Draft' | 'Sent' | 'Confirmed' | 'Partial' | 'Completed' | 'Cancelled'
-  description: string | null
-  delivery_date: string | null
-  terms_conditions: string | null
-  created_at: string
-  updated_at: string
-  created_by: string
+  id: number;
+  po_number: string;
+  po_date: string;
+  supplier_name: string;
+  ledger_id: string | null;
+  total_amount: number;
+  status:
+    | "Draft"
+    | "Sent"
+    | "Confirmed"
+    | "Partial"
+    | "Completed"
+    | "Cancelled";
+  description: string | null;
+  delivery_date: string | null;
+  terms_conditions: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
   ledgers?: {
-    business_name: string
-    contact_person_name: string | null
-    mobile_number: string | null
-  }
-}
+    business_name: string;
+    contact_person_name: string | null;
+    mobile_number: string | null;
+  };
+};
 
-type UserRole = Database['public']['Tables']['profiles']['Row']['user_role']
+type UserRole = Database["public"]["Tables"]["profiles"]["Row"]["user_role"];
 
 interface PurchaseOrdersContentProps {
-  purchaseOrders: PurchaseOrder[]
-  totalCount: number
-  userRole: UserRole
+  purchaseOrders: PurchaseOrder[];
+  totalCount: number;
+  userRole: UserRole;
 }
 
-export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: PurchaseOrdersContentProps) {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  
-  const canEdit = userRole === 'Admin' || userRole === 'Manager'
+export function PurchaseOrdersContent({
+  purchaseOrders,
+  totalCount,
+  userRole,
+}: PurchaseOrdersContentProps) {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const filteredPOs = purchaseOrders.filter(po => {
-    const matchesSearch = !searchTerm || 
+  const canEdit = userRole === "Admin" || userRole === "Manager";
+
+  const filteredPOs = purchaseOrders.filter((po) => {
+    const matchesSearch =
+      !searchTerm ||
       po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       po.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (po.ledgers?.business_name && po.ledgers.business_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      (po.ledgers?.business_name &&
+        po.ledgers.business_name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
 
-    return matchesSearch
-  })
+    return matchesSearch;
+  });
 
   const handleDeletePurchaseOrder = async (poId: number, poNumber: string) => {
-    if (!confirm(`Are you sure you want to delete Purchase Order "${poNumber}"? This action cannot be undone.`)) {
-      return
+    if (
+      !confirm(
+        `Are you sure you want to delete Purchase Order "${poNumber}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(poId)
+    setDeletingId(poId);
 
     try {
       const { error } = await supabase
-        .from('purchase_orders')
+        .from("purchase_orders")
         .delete()
-        .eq('id', poId)
+        .eq("id", poId);
 
       if (error) {
-        alert('Failed to delete purchase order. Please try again.')
-        return
+        alert("Failed to delete purchase order. Please try again.");
+        return;
       }
 
       // Refresh the page to show updated data
-      router.refresh()
+      router.refresh();
     } catch (err) {
-      console.error('Error deleting purchase order:', err)
-      alert('An unexpected error occurred. Please try again.')
+      console.error("Error deleting purchase order:", err);
+      alert("An unexpected error occurred. Please try again.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     const statusColors = {
-      'Draft': 'bg-gray-100 text-gray-700',
-      'Sent': 'bg-blue-100 text-blue-700',
-      'Confirmed': 'bg-green-100 text-green-700',
-      'Partial': 'bg-yellow-100 text-yellow-700',
-      'Completed': 'bg-emerald-100 text-emerald-700',
-      'Cancelled': 'bg-red-100 text-red-700'
-    }
-    
+      Draft: "bg-gray-100 text-gray-700",
+      Sent: "bg-blue-100 text-blue-700",
+      Confirmed: "bg-green-100 text-green-700",
+      Partial: "bg-yellow-100 text-yellow-700",
+      Completed: "bg-emerald-100 text-emerald-700",
+      Cancelled: "bg-red-100 text-red-700",
+    };
+
     return (
-      <Badge variant="secondary" className={statusColors[status as keyof typeof statusColors]}>
+      <Badge
+        variant="secondary"
+        className={statusColors[status as keyof typeof statusColors]}
+      >
         {status}
       </Badge>
-    )
-  }
+    );
+  };
 
   const getTotalAmount = () => {
-    return purchaseOrders.reduce((sum, po) => sum + po.total_amount, 0)
-  }
+    return purchaseOrders.reduce((sum, po) => sum + po.total_amount, 0);
+  };
 
   const getStatusCounts = () => {
-    const counts = purchaseOrders.reduce((acc, po) => {
-      acc[po.status] = (acc[po.status] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    return counts
-  }
+    const counts = purchaseOrders.reduce(
+      (acc, po) => {
+        acc[po.status] = (acc[po.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    return counts;
+  };
 
-  const statusCounts = getStatusCounts()
+  const statusCounts = getStatusCounts();
 
   return (
     <div className="space-y-6">
@@ -146,11 +176,12 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Purchase Orders</h1>
           <p className="text-gray-600 mt-1">
-            Manage purchase orders and supplier communications ({totalCount} total POs)
+            Manage purchase orders and supplier communications ({totalCount}{" "}
+            total POs)
           </p>
         </div>
         {canEdit && (
-          <Button onClick={() => router.push('/dashboard/purchase/create')}>
+          <Button onClick={() => router.push("/dashboard/purchase/create")}>
             <Plus className="h-4 w-4 mr-2" />
             Create PO
           </Button>
@@ -164,13 +195,15 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
             <div className="flex items-center">
               <FileText className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900">{totalCount}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {totalCount}
+                </div>
                 <div className="text-sm text-gray-600">Total POs</div>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -184,20 +217,20 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              {statusCounts['Confirmed'] || 0}
+              {statusCounts["Confirmed"] || 0}
             </div>
             <div className="text-sm text-gray-600">Confirmed</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-600">
-              {statusCounts['Sent'] || 0}
+              {statusCounts["Sent"] || 0}
             </div>
             <div className="text-sm text-gray-600">Sent</div>
           </CardContent>
@@ -265,7 +298,7 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
                     )}
                   </TableCell>
                   <TableCell>
-                    {po.ledgers?.business_name || 'Direct Supplier'}
+                    {po.ledgers?.business_name || "Direct Supplier"}
                   </TableCell>
                   <TableCell className="font-mono">
                     {formatCurrency(po.total_amount)}
@@ -296,33 +329,41 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/purchase/${po.id}`)}
+                          onClick={() =>
+                            router.push(`/dashboard/purchase/${po.id}`)
+                          }
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/purchase/${po.id}/print`)}
+                          onClick={() =>
+                            router.push(`/dashboard/purchase/${po.id}/print`)
+                          }
                         >
                           <FileText className="mr-2 h-4 w-4" />
                           Print PO
                         </DropdownMenuItem>
                         {canEdit && (
                           <DropdownMenuItem
-                            onClick={() => router.push(`/dashboard/purchase/${po.id}/edit`)}
+                            onClick={() =>
+                              router.push(`/dashboard/purchase/${po.id}/edit`)
+                            }
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                         )}
                         {canEdit && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeletePurchaseOrder(po.id, po.po_number)}
+                            onClick={() =>
+                              handleDeletePurchaseOrder(po.id, po.po_number)
+                            }
                             disabled={deletingId === po.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {deletingId === po.id ? 'Deleting...' : 'Delete'}
+                            {deletingId === po.id ? "Deleting..." : "Delete"}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -332,7 +373,7 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
               ))}
             </TableBody>
           </Table>
-          
+
           {filteredPOs.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-500">No purchase orders found</div>
@@ -344,5 +385,5 @@ export function PurchaseOrdersContent({ purchaseOrders, totalCount, userRole }: 
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

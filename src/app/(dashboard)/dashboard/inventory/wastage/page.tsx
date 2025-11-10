@@ -1,46 +1,47 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { WastageContent } from '@/components/inventory/wastage-content'
+import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { WastageContent } from "@/components/inventory/wastage-content";
 
 export default async function WastagePage() {
-  const supabase = createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Get user profile
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   if (!profile) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Fetch wastage items
- const { data: wastageItems, error } = await supabase
-    .from('isteaching_challans')
-    .select(`
+  const { data: wastageItems, error } = await supabase
+    .from("isteaching_challans")
+    .select(
+      `
       *,
       ledgers (business_name),
       products (product_name, product_description, product_image, product_sku)
-    `)
-    .eq('inventory_classification', 'wastage')
-    .order('date', { ascending: false })
+    `,
+    )
+    .eq("inventory_classification", "wastage")
+    .order("date", { ascending: false });
 
   if (error) {
-    console.error('Error fetching wastage items:', error)
+    console.error("Error fetching wastage items:", error);
   }
 
   return (
-    <WastageContent
-      items={wastageItems || []}
-      userRole={profile.user_role}
-    />
-  )
+    <WastageContent items={wastageItems || []} userRole={profile.user_role} />
+  );
 }

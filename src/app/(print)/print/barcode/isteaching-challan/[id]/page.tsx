@@ -1,41 +1,49 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
-import BarcodeChallanClient from '@/app/(print)/print/barcode/isteaching-challan/[id]/BarcodeChallanClient'
+import { createClient } from "@/lib/supabase/server"; // Use standardized custom client
+import { notFound } from "next/navigation";
+// FIX 1: Use absolute path for centralized component directory
+import BarcodeChallanClient from "@/components/production/barcode/BarcodeChallanClient";
 
+// Define minimal required types
 interface BarcodeChallanPageProps {
-  params: Promise<{
-    id: string
-  }>
+  params: { id: string }; // FIX 2: Simplify params structure (no Promise wrapper)
 }
 
-export default async function BarcodeChallanPage({ params }: BarcodeChallanPageProps) {
-  const resolvedParams = await params;
-  const supabase = createServerSupabaseClient()
-  
-  // Fetch the stitching challan with related data
-  const { data: isteachingChallan, error } = await supabase
-    .from('isteaching_challans')
-    .select(`
-      *,
-      ledgers (*)
-    `)
-    .eq('id', resolvedParams.id)
-    .single()
+export default async function BarcodeChallanPage({
+  params,
+}: BarcodeChallanPageProps) {
+  
+  // FIX 3: Await the client initialization
+  const supabase = await createClient();
 
-  if (error || !isteachingChallan) {
-    console.error('Error fetching stitching challan:', error)
-    notFound()
-  }
+  // We don't strictly need user auth, but if data is RLS protected, auth is required.
+  // Assuming the user is already authenticated via middleware/layout for print routes.
 
-  // Fetch related weaver challans for batch details
-  const { data: weaverChallans } = await supabase
-    .from('weaver_challans')
-    .select('quality_details, batch_number')
+  // Fetch the stitching challan with related data
+  const { data: isteachingChallan, error } = await supabase
+    .from("isteaching_challans")
+    .select(
+      `
+      *,
+      ledgers (*)
+    `,
+    )
+    .eq("id", params.id) // Use params.id directly
+    .single();
 
-  return (
-    <BarcodeChallanClient
-      isteachingChallan={isteachingChallan}
-      weaverChallans={weaverChallans || []}
-    />
-  )
+  if (error || !isteachingChallan) {
+    console.error("Error fetching stitching challan:", error);
+    notFound();
+  }
+
+  // Fetch related weaver challans for batch details
+  const { data: weaverChallans } = await supabase
+    .from("weaver_challans")
+    .select("quality_details, batch_number");
+
+  return (
+    <BarcodeChallanClient
+      isteachingChallan={isteachingChallan}
+      weaverChallans={weaverChallans || []}
+    />
+  );
 }

@@ -5,9 +5,11 @@ A modern Order Management System (OMS) for textile/weaving business, built with 
 ## 🎯 Our Project & Purpose
 
 ### **What is Bhaktinandan OMS?**
+
 Bhaktinandan OMS is a comprehensive **textile and weaving business management system** designed specifically for the textile industry. It's a complete solution that manages every aspect of a textile business from raw materials to finished products.
 
 ### **Our Purpose & Mission**
+
 We are **modernizing and upgrading** the existing PHP-based Bhaktinandan OMS system to provide:
 
 1. **🔄 Digital Transformation**: Converting from legacy PHP to modern Next.js technology
@@ -18,6 +20,7 @@ We are **modernizing and upgrading** the existing PHP-based Bhaktinandan OMS sys
 6. **🌐 Future-Ready**: Cloud-based solution with real-time collaboration
 
 ### **Business Value**
+
 - **Streamlined Operations**: Automate manual processes and reduce errors
 - **Better Inventory Control**: Real-time tracking of products and materials
 - **Financial Management**: Comprehensive ledger and transaction tracking
@@ -27,6 +30,7 @@ We are **modernizing and upgrading** the existing PHP-based Bhaktinandan OMS sys
 ## 🚀 Project Overview
 
 This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, modernized with:
+
 - **Next.js 14+** with App Router
 - **TypeScript** for type safety
 - **Supabase** for backend (PostgreSQL + Auth + Storage + Realtime)
@@ -36,6 +40,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 ## ✅ What We've Accomplished
 
 ### 1. Project Setup ✅
+
 - [x] Created Next.js 14+ project with TypeScript
 - [x] Configured Tailwind CSS for styling
 - [x] Set up ESLint for code quality
@@ -43,6 +48,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] Set up src directory organization
 
 ### 2. Dependencies Installed ✅
+
 - [x] **Supabase**: `@supabase/supabase-js`, `@supabase/ssr`, `@supabase/auth-ui-react`
 - [x] **UI Components**: `lucide-react`, `@radix-ui/*` packages
 - [x] **State Management**: `zustand`
@@ -52,6 +58,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Data Tables**: `@tanstack/react-table`, `@tanstack/react-query`
 
 ### 3. Environment & Database Setup ✅
+
 - [x] **Supabase Project**: Configured with real credentials
 - [x] **Environment Variables**: `.env.local` set up with production Supabase keys
 - [x] **Database Schema**: Complete SQL setup script (`setup.sql`) created
@@ -61,6 +68,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Database Functions**: Auto-profile creation trigger implemented
 
 ### 4. Authentication System ✅
+
 - [x] **Signup Page**: Complete user registration with role selection
 - [x] **Login Page**: Email/password authentication with role verification
 - [x] **Role-based Access**: Admin, Manager, User roles with proper validation
@@ -69,6 +77,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **User Profiles**: Automatic profile creation on signup
 
 ### 5. Core UI Components ✅
+
 - [x] **Layout System**: Dashboard layout with sidebar and header
 - [x] **Navigation**: Responsive sidebar with role-based menu items
 - [x] **UI Components**: Complete shadcn/ui component library
@@ -77,6 +86,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Responsive Design**: Mobile-first approach
 
 ### 6. Dashboard Implementation ✅
+
 - [x] **Real Data Integration**: Dashboard fetches live data from Supabase
 - [x] **Statistics Cards**: Today's orders, total orders, active products, active ledgers
 - [x] **Quick Actions**: Clickable cards for creating products, ledgers, challans, POs
@@ -85,7 +95,9 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Performance**: Parallel data fetching for optimal loading
 
 ### 7. Core Modules Implementation ✅
+
 #### **Inventory Management ✅**
+
 - [x] **Product Listing**: Complete product management with real data
 - [x] **Product Creation**: Full form with validation and image upload
 - [x] **Product Categories**: Category and sub-category management
@@ -93,12 +105,14 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Search & Filters**: Product filtering and search functionality
 
 #### **Ledger Management ✅**
+
 - [x] **Ledger Master**: Business/vendor management system
 - [x] **Ledger Creation**: Complete business details with GST, address, contacts
 - [x] **Ledger Listing**: View and manage all business partners
 - [x] **Integration**: Connected with purchase orders and weaver challans
 
 #### **Production Management ✅**
+
 - [x] **Weaver Challan Creation**: Complete production challan system
 - [x] **Batch Management**: Unique batch number generation
 - [x] **Production Tracking**: Total grey meters, taka, transport details
@@ -108,6 +122,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Barcode Generation**: Generate barcodes for stitching challan sizes
 
 #### **Purchase Management ✅**
+
 - [x] **Purchase Order Creation**: Full PO system with items and calculations
 - [x] **PO Management**: Status tracking (Draft, Sent, Confirmed, etc.)
 - [x] **Supplier Integration**: Ledger-based supplier selection
@@ -115,6 +130,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 - [x] **Auto-numbering**: Automatic PO number generation
 
 #### **User Management ✅**
+
 - [x] **User Creation**: Admin can create users with role assignment
 - [x] **Profile Management**: Complete user profile system
 - [x] **Role Management**: Admin, Manager, User role system
@@ -123,6 +139,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
 ## 📋 What We Need to Do Next
 
 ### Phase 1: Advanced Features 🚀
+
 - [ ] **Enhanced UI/UX**
   - [ ] Advanced data tables with sorting, filtering, pagination
   - [ ] Bulk operations for products and ledgers
@@ -136,6 +153,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
   - [ ] Order fulfillment tracking
 
 ### Phase 2: Advanced Features 🔮
+
 - [ ] **Real-time Updates**
   - [ ] Live inventory updates
   - [ ] Production status notifications
@@ -149,6 +167,7 @@ This is a complete rewrite of the original PHP-based Bhaktinandan OMS system, mo
   - [ ] Performance dashboards
 
 ### Phase 3: Future Enhancements 🔮
+
 - [ ] **System Optimizations**
   - [ ] Performance optimizations and caching
   - [ ] Mobile app development (React Native)
@@ -184,6 +203,7 @@ oms-nextjs/
 ## 📊 Database Structure
 
 ### **Core Tables**
+
 - **`profiles`**: User profiles extending Supabase auth (Admin, Manager, User roles)
 - **`products`**: Product catalog with categories, SKUs, images, and status
 - **`ledgers`**: Business partners/vendors with complete business details
@@ -191,12 +211,14 @@ oms-nextjs/
 - **`weaver_challans`**: Production challan system with batch and transport details
 
 ### **Key Features**
+
 - **Row Level Security (RLS)**: Role-based data access policies
 - **Auto-generated IDs**: Unique batch numbers, PO numbers, ledger IDs
 - **File Storage**: Separate buckets for product images, documents, profiles
 - **Real-time Triggers**: Automatic profile creation, updated timestamps
 
 ### **Security Implementation**
+
 - **Authentication**: Supabase Auth with email/password
 - **Authorization**: RLS policies based on user roles
 - **Data Validation**: Zod schemas for all forms and inputs
@@ -216,23 +238,27 @@ oms-nextjs/
 ## 🚀 Getting Started
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd oms-nextjs
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    # Add your Supabase credentials (see Environment Variables section)
    ```
 
 4. **Set up Supabase database**
+
    ```bash
    # Go to your Supabase project dashboard
    # Navigate to SQL Editor
@@ -240,6 +266,7 @@ oms-nextjs/
    ```
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -272,7 +299,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## 🎯 Current Status & Next Steps
 
 ### ✅ **COMPLETED - Ready for Production Use**
+
 The Bhaktinandan OMS is now **fully functional** with all core features implemented:
+
 - Complete authentication system
 - Full database schema with RLS policies
 - All major modules (Inventory, Ledger, Production, Purchase, Users)
@@ -280,6 +309,7 @@ The Bhaktinandan OMS is now **fully functional** with all core features implemen
 - Responsive UI with modern components
 
 ### 🚀 **Immediate Next Steps for Production**
+
 1. **Data Migration**: Migrate existing PHP system data to Supabase
 2. **Performance Testing**: Load testing with production data volumes
 3. **User Training**: Train staff on the new system
@@ -287,6 +317,7 @@ The Bhaktinandan OMS is now **fully functional** with all core features implemen
 5. **Backup Strategy**: Implement regular database backups
 
 ### 🔮 **Future Enhancements**
+
 - Advanced reporting and analytics
 - Mobile application
 - API integrations
@@ -308,6 +339,7 @@ The Bhaktinandan OMS is now **fully functional** with all core features implemen
 **Last Updated**: January 2025
 
 ### 🎯 **Key Achievements**
+
 - ✅ **Full-Stack Implementation**: Complete Next.js + Supabase system
 - ✅ **Modern Tech Stack**: TypeScript, Tailwind CSS, shadcn/ui components
 - ✅ **Production Database**: PostgreSQL with RLS policies and triggers
@@ -316,7 +348,9 @@ The Bhaktinandan OMS is now **fully functional** with all core features implemen
 - ✅ **Real-Time Data**: Live dashboard with actual business metrics
 
 ### 🔄 **Migration from PHP System**
+
 This Next.js system is a **complete modernization** of the original PHP-based Bhaktinandan OMS, offering:
+
 - **10x Better Performance**: Modern React architecture
 - **Enhanced Security**: Supabase Auth + RLS policies
 - **Mobile Responsive**: Works on all devices

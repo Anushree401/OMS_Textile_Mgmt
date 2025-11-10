@@ -1,168 +1,218 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
-import { 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { 
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   FileText,
   Calendar,
-  History
-} from 'lucide-react'
-import { Database, Json } from '@/types/database'
-import { formatDate } from '@/lib/utils'
-import { IsteachingChallanForm } from './isteaching-challan-form'
+  History,
+} from "lucide-react";
+import { Database, Json } from "@/types/database";
+import { formatDate } from "@/lib/utils";
+import { IsteachingChallanForm } from "./isteaching-challan-form";
 
-type IsteachingChallan = Database['public']['Tables']['isteaching_challans']['Row'] & {
-  ledgers?: {
-    business_name: string
-  }
-  products?: {
-    product_name: string
-  }
-}
+type IsteachingChallan =
+  Database["public"]["Tables"]["isteaching_challans"]["Row"] & {
+    ledgers?: {
+      business_name: string;
+    };
+    products?: {
+      product_name: string;
+    };
+  };
 
-type Ledger = Database['public']['Tables']['ledgers']['Row']
-type Quality = { product_name: string }
-type BatchNumber = { batch_number: string, quality_details: Json }
-type UserRole = Database['public']['Tables']['profiles']['Row']['user_role']
-type Product = Database['public']['Tables']['products']['Row']
-type WeaverChallan = { quality_details: Json, batch_number: string }
+type Ledger = Database["public"]["Tables"]["ledgers"]["Row"];
+type Quality = { product_name: string };
+type BatchNumber = { batch_number: string; quality_details: Json };
+type UserRole = Database["public"]["Tables"]["profiles"]["Row"]["user_role"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
+type WeaverChallan = { quality_details: Json; batch_number: string };
 
 interface IsteachingChallanContentProps {
-  challans: IsteachingChallan[]
-  totalCount: number
-  ledgers: Ledger[]
-  qualities: Quality[]
-  batchNumbers: BatchNumber[]
-  userRole: UserRole
-  products: Product[]
-  weaverChallans: WeaverChallan[]
-  shortingEntries: { quality_name: string, shorting_qty: number, weaver_challan_qty: number, batch_number: string }[]
+  challans: IsteachingChallan[];
+  totalCount: number;
+  ledgers: Ledger[];
+  qualities: Quality[];
+  batchNumbers: BatchNumber[];
+  userRole: UserRole;
+  products: Product[];
+  weaverChallans: WeaverChallan[];
+  shortingEntries: {
+    quality_name: string;
+    shorting_qty: number;
+    weaver_challan_qty: number;
+    batch_number: string;
+  }[];
 }
 
-export function IsteachingChallanContent({ 
-  challans, 
-  totalCount, 
-  ledgers, 
-  qualities, 
-  batchNumbers, 
+export function IsteachingChallanContent({
+  challans,
+  totalCount,
+  ledgers,
+  qualities,
+  batchNumbers,
   userRole,
   products,
   weaverChallans,
-  shortingEntries
+  shortingEntries,
 }: IsteachingChallanContentProps) {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [partyFilter, setPartyFilter] = useState('')
-  const [startDateFilter, setStartDateFilter] = useState('')
-  const [endDateFilter, setEndDateFilter] = useState('')
-  const [qualityFilter, setQualityFilter] = useState('')
-  
-  const canEdit = userRole === 'Admin' || userRole === 'Manager'
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [partyFilter, setPartyFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const [qualityFilter, setQualityFilter] = useState("");
 
-  const filteredChallans = challans.filter(challan => {
-    const matchesSearch = !searchTerm || 
+  const canEdit = userRole === "Admin" || userRole === "Manager";
+
+  const filteredChallans = challans.filter((challan) => {
+    const matchesSearch =
+      !searchTerm ||
       challan.challan_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      challan.batch_number.join(', ').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      challan.batch_number
+        .join(", ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       challan.quality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (challan.ledgers?.business_name && challan.ledgers.business_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (challan.products?.product_name && challan.products.product_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      (challan.ledgers?.business_name &&
+        challan.ledgers.business_name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) ||
+      (challan.products?.product_name &&
+        challan.products.product_name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
 
-    const matchesParty = !partyFilter || partyFilter === 'all' || challan.ledger_id === partyFilter
-    
-    const matchesDate = (!startDateFilter || new Date(challan.date) >= new Date(startDateFilter)) &&
-                        (!endDateFilter || new Date(challan.date) < new Date(new Date(endDateFilter).setDate(new Date(endDateFilter).getDate() + 1)))
+    const matchesParty =
+      !partyFilter ||
+      partyFilter === "all" ||
+      challan.ledger_id === partyFilter;
 
-    const matchesQuality = !qualityFilter || qualityFilter === 'all' || challan.quality.toLowerCase().includes(qualityFilter.toLowerCase())
+    const matchesDate =
+      (!startDateFilter ||
+        new Date(challan.date) >= new Date(startDateFilter)) &&
+      (!endDateFilter ||
+        new Date(challan.date) <
+          new Date(
+            new Date(endDateFilter).setDate(
+              new Date(endDateFilter).getDate() + 1,
+            ),
+          ));
 
-    return matchesSearch && matchesParty && matchesDate && matchesQuality
-  })
+    const matchesQuality =
+      !qualityFilter ||
+      qualityFilter === "all" ||
+      challan.quality.toLowerCase().includes(qualityFilter.toLowerCase());
+
+    return matchesSearch && matchesParty && matchesDate && matchesQuality;
+  });
 
   const resetFilters = () => {
-    setSearchTerm('')
-    setPartyFilter('')
-    setStartDateFilter('')
-    setEndDateFilter('')
-    setQualityFilter('')
-  }
+    setSearchTerm("");
+    setPartyFilter("");
+    setStartDateFilter("");
+    setEndDateFilter("");
+    setQualityFilter("");
+  };
 
   const handleDeleteIsteachingChallan = async (challanId: number) => {
-    if (!confirm(`Are you sure you want to delete this challan? This action cannot be undone.`)) {
-      return
+    if (
+      !confirm(
+        `Are you sure you want to delete this challan? This action cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(challanId)
+    setDeletingId(challanId);
 
     try {
       const { error } = await supabase
-        .from('isteaching_challans')
+        .from("isteaching_challans")
         .delete()
-        .eq('id', challanId)
+        .eq("id", challanId);
 
       if (error) {
-        toast.error('Failed to delete challan. Please try again.')
-        return
+        toast.error("Failed to delete challan. Please try again.");
+        return;
       }
 
-      toast.success(`Challan has been deleted successfully.`)
-      router.refresh()
+      toast.success(`Challan has been deleted successfully.`);
+      router.refresh();
     } catch (err) {
-      console.error('Error deleting challan:', err)
-      toast.error('An unexpected error occurred. Please try again.')
+      console.error("Error deleting challan:", err);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   if (showCreateForm) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create Stitching  Challan</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create Stitching Challan
+            </h1>
             <p className="text-gray-600 mt-1">
-              Create a new Stitching  challan.
+              Create a new Stitching challan.
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowCreateForm(false)}
-          >
+          <Button variant="outline" onClick={() => setShowCreateForm(false)}>
             Back to List
           </Button>
         </div>
 
-        <IsteachingChallanForm 
+        <IsteachingChallanForm
           ledgers={ledgers}
           qualities={qualities}
           batchNumbers={batchNumbers}
@@ -171,12 +221,12 @@ export function IsteachingChallanContent({
           shortingEntries={shortingEntries}
           isteachingChallans={challans}
           onSuccess={() => {
-            setShowCreateForm(false)
-            router.refresh()
+            setShowCreateForm(false);
+            router.refresh();
           }}
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -184,9 +234,11 @@ export function IsteachingChallanContent({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Stitching  Challans</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Stitching Challans
+          </h1>
           <p className="text-gray-600 mt-1">
-            Manage Stitching  challans ({totalCount} total challans)
+            Manage Stitching challans ({totalCount} total challans)
           </p>
         </div>
         {canEdit && (
@@ -205,7 +257,8 @@ export function IsteachingChallanContent({
             Search & Filter Challans
           </CardTitle>
           <CardDescription>
-            Use the search bar for quick searches or expand the filters for more options.
+            Use the search bar for quick searches or expand the filters for more
+            options.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -230,10 +283,13 @@ export function IsteachingChallanContent({
                       <SelectTrigger>
                         <SelectValue placeholder="All Parties" />
                       </SelectTrigger>
-                      <SelectContent className='bg-white'>
+                      <SelectContent className="bg-white">
                         <SelectItem value="all">All Parties</SelectItem>
-                        {ledgers.map(ledger => (
-                          <SelectItem key={ledger.ledger_id} value={ledger.ledger_id}>
+                        {ledgers.map((ledger) => (
+                          <SelectItem
+                            key={ledger.ledger_id}
+                            value={ledger.ledger_id}
+                          >
                             {ledger.business_name}
                           </SelectItem>
                         ))}
@@ -242,22 +298,36 @@ export function IsteachingChallanContent({
                   </div>
                   <div className="space-y-2">
                     <Label>Start Date</Label>
-                    <Input type="date" value={startDateFilter} onChange={e => setStartDateFilter(e.target.value)} />
+                    <Input
+                      type="date"
+                      value={startDateFilter}
+                      onChange={(e) => setStartDateFilter(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>End Date</Label>
-                    <Input type="date" value={endDateFilter} onChange={e => setEndDateFilter(e.target.value)} />
+                    <Input
+                      type="date"
+                      value={endDateFilter}
+                      onChange={(e) => setEndDateFilter(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Quality Name</Label>
-                    <Select value={qualityFilter} onValueChange={setQualityFilter}>
+                    <Select
+                      value={qualityFilter}
+                      onValueChange={setQualityFilter}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="All Qualities" />
                       </SelectTrigger>
-                      <SelectContent className='bg-white'>
+                      <SelectContent className="bg-white">
                         <SelectItem value="all">All Qualities</SelectItem>
-                        {qualities.map(q => (
-                          <SelectItem key={q.product_name} value={q.product_name}>
+                        {qualities.map((q) => (
+                          <SelectItem
+                            key={q.product_name}
+                            value={q.product_name}
+                          >
                             {q.product_name}
                           </SelectItem>
                         ))}
@@ -265,7 +335,12 @@ export function IsteachingChallanContent({
                     </Select>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="mt-4" onClick={resetFilters}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={resetFilters}
+                >
                   Reset Filters
                 </Button>
               </AccordionContent>
@@ -284,20 +359,22 @@ export function IsteachingChallanContent({
             <div className="text-sm text-gray-600">Filtered Challans</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              {filteredChallans.reduce((sum, challan) => sum + Number(challan.quantity), 0).toFixed(2)}
+              {filteredChallans
+                .reduce((sum, challan) => sum + Number(challan.quantity), 0)
+                .toFixed(2)}
             </div>
             <div className="text-sm text-gray-600">Total Quantity</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-purple-600">
-              {new Set(filteredChallans.map(c => c.quality)).size}
+              {new Set(filteredChallans.map((c) => c.quality)).size}
             </div>
             <div className="text-sm text-gray-600">Unique Qualities</div>
           </CardContent>
@@ -342,22 +419,52 @@ export function IsteachingChallanContent({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {challan.ledgers?.business_name || 'N/A'}
+                    {challan.ledgers?.business_name || "N/A"}
                   </TableCell>
                   <TableCell>{challan.quality}</TableCell>
-                  <TableCell>{challan.batch_number.join(', ')}</TableCell>
+                  <TableCell>{challan.batch_number.join(", ")}</TableCell>
                   <TableCell>{challan.quantity}</TableCell>
-                  <TableCell>{challan.products?.product_name || 'N/A'}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="icon" onClick={() => window.open(`/print/isteaching-challan/${challan.id}`, '_blank')}>
+                    {challan.products?.product_name || "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        window.open(
+                          `/print/isteaching-challan/${challan.id}`,
+                          "_blank",
+                        )
+                      }
+                    >
                       <FileText className="h-4 w-4" />
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <Button variant="outline" size="icon" onClick={() => window.open(`/print/barcode/isteaching-challan/${challan.id}`, '_blank')}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 5v14a1 1 0 0 1 1h16a1 0 0 0 1-1V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z"/>
-                        <path d="M8 12h.01M12 12h.01M16 12h.01"/>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        window.open(
+                          `/print/barcode/isteaching-challan/${challan.id}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 5v14a1 1 0 0 1 1h16a1 0 0 0 1-1V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" />
+                        <path d="M8 12h.01M12 12h.01M16 12h.01" />
                       </svg>
                     </Button>
                   </TableCell>
@@ -368,35 +475,51 @@ export function IsteachingChallanContent({
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className=' bg-white ' >
+                      <DropdownMenuContent align="end" className=" bg-white ">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/production/isteaching-challan/${challan.id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/production/isteaching-challan/${challan.id}`,
+                            )
+                          }
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
                         {canEdit && (
                           <DropdownMenuItem
-                            onClick={() => router.push(`/dashboard/production/isteaching-challan/${challan.id}/edit`)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/production/isteaching-challan/${challan.id}/edit`,
+                              )
+                            }
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/production/isteaching-challan/${challan.id}/logs`)}
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/production/isteaching-challan/${challan.id}/logs`,
+                            )
+                          }
                         >
                           <History className="mr-2 h-4 w-4" />
                           Change Logs
                         </DropdownMenuItem>
                         {canEdit && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeleteIsteachingChallan(challan.id)}
+                            onClick={() =>
+                              handleDeleteIsteachingChallan(challan.id)
+                            }
                             disabled={deletingId === challan.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {deletingId === challan.id ? 'Deleting...' : 'Delete'}
+                            {deletingId === challan.id
+                              ? "Deleting..."
+                              : "Delete"}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -406,7 +529,7 @@ export function IsteachingChallanContent({
               ))}
             </TableBody>
           </Table>
-          
+
           {filteredChallans.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-500">No challans found</div>
@@ -418,5 +541,5 @@ export function IsteachingChallanContent({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

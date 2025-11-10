@@ -4,874 +4,874 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   public: {
     Tables: {
       expenses: {
         Row: {
-          cost: number
-          amount_before_gst: number
-          sgst: string
-          cgst: string
-          igst: string
-          created_at: string
-          created_by: string | null
-          expense_date: string
-          expense_for: string[]
-          id: number
-          ledger_id: string | null
-          manual_ledger_id: string | null
-          challan_no: string | null
-          other_expense_description: string | null
-          updated_at: string
-        }
+          cost: number;
+          amount_before_gst: number;
+          sgst: string;
+          cgst: string;
+          igst: string;
+          created_at: string;
+          created_by: string | null;
+          expense_date: string;
+          expense_for: string[];
+          id: number;
+          ledger_id: string | null;
+          manual_ledger_id: string | null;
+          challan_no: string | null;
+          other_expense_description: string | null;
+          updated_at: string;
+        };
         Insert: {
-          cost: number
-          amount_before_gst: number
-          sgst?: string
-          cgst?: string
-          igst?: string
-          created_at?: string
-          created_by?: string | null
-          expense_date: string
-          expense_for: string[]
-          id?: number
-          ledger_id?: string | null
-          manual_ledger_id?: string | null
-          challan_no?: string | null
-          other_expense_description?: string | null
-          updated_at?: string
-        }
+          cost: number;
+          amount_before_gst: number;
+          sgst?: string;
+          cgst?: string;
+          igst?: string;
+          created_at?: string;
+          created_by?: string | null;
+          expense_date: string;
+          expense_for: string[];
+          id?: number;
+          ledger_id?: string | null;
+          manual_ledger_id?: string | null;
+          challan_no?: string | null;
+          other_expense_description?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          cost?: number
-          amount_before_gst?: number
-          sgst?: string
-          cgst?: string
-          igst?: string
-          created_at?: string
-          created_by?: string | null
-          expense_date?: string
-          expense_for?: string[]
-          id?: number
-          ledger_id?: string | null
-          manual_ledger_id?: string | null
-          challan_no?: string | null
-          other_expense_description?: string | null
-          updated_at?: string
-        }
+          cost?: number;
+          amount_before_gst?: number;
+          sgst?: string;
+          cgst?: string;
+          igst?: string;
+          created_at?: string;
+          created_by?: string | null;
+          expense_date?: string;
+          expense_for?: string[];
+          id?: number;
+          ledger_id?: string | null;
+          manual_ledger_id?: string | null;
+          challan_no?: string | null;
+          other_expense_description?: string | null;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "expenses_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "expenses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "expenses_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "expenses_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
           {
-            foreignKeyName: "expenses_manual_ledger_id_fkey"
-            columns: ["manual_ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "expenses_manual_ledger_id_fkey";
+            columns: ["manual_ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
           {
-            foreignKeyName: "expenses_challan_no_fkey"
-            columns: ["challan_no"]
-            isOneToOne: false
-            referencedRelation: "isteaching_challans"
-            referencedColumns: ["challan_no"]
+            foreignKeyName: "expenses_challan_no_fkey";
+            columns: ["challan_no"];
+            isOneToOne: false;
+            referencedRelation: "isteaching_challans";
+            referencedColumns: ["challan_no"];
           },
-        ]
-      }
+        ];
+      };
       expense_logs: {
         Row: {
-          changed_at: string
-          changed_by: string | null
-          changes: Json | null
-          expense_id: number | null
-          id: number
-        }
+          changed_at: string;
+          changed_by: string | null;
+          changes: Json | null;
+          expense_id: number | null;
+          id: number;
+        };
         Insert: {
-          changed_at?: string
-          changed_by?: string | null
-          changes?: Json | null
-          expense_id?: number | null
-          id?: number
-        }
+          changed_at?: string;
+          changed_by?: string | null;
+          changes?: Json | null;
+          expense_id?: number | null;
+          id?: number;
+        };
         Update: {
-          changed_at?: string
-          changed_by?: string | null
-          changes?: Json | null
-          expense_id?: number | null
-          id?: number
-        }
+          changed_at?: string;
+          changed_by?: string | null;
+          changes?: Json | null;
+          expense_id?: number | null;
+          id?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "expense_logs_changed_by_fkey"
-            columns: ["changed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "expense_logs_changed_by_fkey";
+            columns: ["changed_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "expense_logs_expense_id_fkey"
-            columns: ["expense_id"]
-            isOneToOne: false
-            referencedRelation: "expenses"
-            referencedColumns: ["id"]
+            foreignKeyName: "expense_logs_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
+            referencedRelation: "expenses";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       isteaching_challans: {
         Row: {
-          challan_no: string
-          id: number
-          date: string
-          ledger_id: string | null
-          quality: string
-          batch_number: string[]
-          quantity: number
-          product_name: string | null
-          product_description: string | null
-          product_image: string | null
-          product_sku: string | null
-          product_qty: number | null
-          product_color: string | null
-          product_size: Json | null
-          category: string | null
-          sub_category: string | null
-          status: string | null
-          brand: string | null
-          made_in: string | null
-          transport_name: string | null
-          lr_number: string | null
-          transport_charge: number | null
-          created_by: string | null
-          created_at: string
-          updated_at: string
-          cloth_type: string[] | null
-          top_qty: number | null
-          top_pcs_qty: number | null
-          bottom_qty: number | null
-          bottom_pcs_qty: number | null
-          selected_product_id: number | null
-          both_selected: boolean | null
-          both_top_qty: number | null
-          both_bottom_qty: number | null
-        }
+          challan_no: string;
+          id: number;
+          date: string;
+          ledger_id: string | null;
+          quality: string;
+          batch_number: string[];
+          quantity: number;
+          product_name: string | null;
+          product_description: string | null;
+          product_image: string | null;
+          product_sku: string | null;
+          product_qty: number | null;
+          product_color: string | null;
+          product_size: Json | null;
+          category: string | null;
+          sub_category: string | null;
+          status: string | null;
+          brand: string | null;
+          made_in: string | null;
+          transport_name: string | null;
+          lr_number: string | null;
+          transport_charge: number | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+          cloth_type: string[] | null;
+          top_qty: number | null;
+          top_pcs_qty: number | null;
+          bottom_qty: number | null;
+          bottom_pcs_qty: number | null;
+          selected_product_id: number | null;
+          both_selected: boolean | null;
+          both_top_qty: number | null;
+          both_bottom_qty: number | null;
+        };
         Insert: {
-          challan_no: string
-          id?: number
-          date: string
-          ledger_id?: string | null
-          quality: string
-          batch_number: string[]
-          quantity: number
-          product_name?: string | null
-          product_description?: string | null
-          product_image?: string | null
-          product_sku?: string | null
-          product_qty?: number | null
-          product_color?: string | null
-          product_size?: Json | null
-          category?: string | null
-          sub_category?: string | null
-          status?: string | null
-          brand?: string | null
-          made_in?: string | null
-          transport_name?: string | null
-          lr_number?: string | null
-          transport_charge?: number | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-          cloth_type?: string[] | null
-          top_qty?: number | null
-          top_pcs_qty?: number | null
-          bottom_qty?: number | null
-          bottom_pcs_qty?: number | null
-          selected_product_id?: number | null
-          both_selected?: boolean | null
-          both_top_qty?: number | null
-          both_bottom_qty?: number | null
-        }
+          challan_no: string;
+          id?: number;
+          date: string;
+          ledger_id?: string | null;
+          quality: string;
+          batch_number: string[];
+          quantity: number;
+          product_name?: string | null;
+          product_description?: string | null;
+          product_image?: string | null;
+          product_sku?: string | null;
+          product_qty?: number | null;
+          product_color?: string | null;
+          product_size?: Json | null;
+          category?: string | null;
+          sub_category?: string | null;
+          status?: string | null;
+          brand?: string | null;
+          made_in?: string | null;
+          transport_name?: string | null;
+          lr_number?: string | null;
+          transport_charge?: number | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          cloth_type?: string[] | null;
+          top_qty?: number | null;
+          top_pcs_qty?: number | null;
+          bottom_qty?: number | null;
+          bottom_pcs_qty?: number | null;
+          selected_product_id?: number | null;
+          both_selected?: boolean | null;
+          both_top_qty?: number | null;
+          both_bottom_qty?: number | null;
+        };
         Update: {
-          challan_no?: string
-          id?: number
-          date?: string
-          ledger_id?: string | null
-          quality?: string
-          batch_number?: string[]
-          quantity?: number
-          product_name?: string | null
-          product_description?: string | null
-          product_image?: string | null
-          product_sku?: string | null
-          product_qty?: number | null
-          product_color?: string | null
-          product_size?: Json | null
-          category?: string | null
-          sub_category?: string | null
-          status?: string | null
-          brand?: string | null
-          made_in?: string | null
-          transport_name?: string | null
-          lr_number?: string | null
-          transport_charge?: number | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-          cloth_type?: string[] | null
-          top_qty?: number | null
-          top_pcs_qty?: number | null
-          bottom_qty?: number | null
-          bottom_pcs_qty?: number | null
-          selected_product_id?: number | null
-          both_selected?: boolean | null
-          both_top_qty?: number | null
-          both_bottom_qty?: number | null
-        }
+          challan_no?: string;
+          id?: number;
+          date?: string;
+          ledger_id?: string | null;
+          quality?: string;
+          batch_number?: string[];
+          quantity?: number;
+          product_name?: string | null;
+          product_description?: string | null;
+          product_image?: string | null;
+          product_sku?: string | null;
+          product_qty?: number | null;
+          product_color?: string | null;
+          product_size?: Json | null;
+          category?: string | null;
+          sub_category?: string | null;
+          status?: string | null;
+          brand?: string | null;
+          made_in?: string | null;
+          transport_name?: string | null;
+          lr_number?: string | null;
+          transport_charge?: number | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          cloth_type?: string[] | null;
+          top_qty?: number | null;
+          top_pcs_qty?: number | null;
+          bottom_qty?: number | null;
+          bottom_pcs_qty?: number | null;
+          selected_product_id?: number | null;
+          both_selected?: boolean | null;
+          both_top_qty?: number | null;
+          both_bottom_qty?: number | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "isteaching_challans_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "isteaching_challans_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "isteaching_challans_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "isteaching_challans_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
           {
-            foreignKeyName: "isteaching_challans_selected_product_id_fkey"
-            columns: ["selected_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: "isteaching_challans_selected_product_id_fkey";
+            columns: ["selected_product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ledgers: {
         Row: {
-          address: string | null
-          business_logo: string | null
-          business_name: string
-          city: string | null
-          contact_person_name: string | null
-          country: string | null
-          created_at: string
-          created_by: string | null
-          district: string | null
-          email: string | null
-          gst_number: string | null
-          ledger_id: string
-          mobile_number: string | null
-          state: string | null
-          updated_at: string
-          zip_code: string | null
-          pan_number: string | null
-        }
+          address: string | null;
+          business_logo: string | null;
+          business_name: string;
+          city: string | null;
+          contact_person_name: string | null;
+          country: string | null;
+          created_at: string;
+          created_by: string | null;
+          district: string | null;
+          email: string | null;
+          gst_number: string | null;
+          ledger_id: string;
+          mobile_number: string | null;
+          state: string | null;
+          updated_at: string;
+          zip_code: string | null;
+          pan_number: string | null;
+        };
         Insert: {
-          address?: string | null
-          business_logo?: string | null
-          business_name: string
-          city?: string | null
-          contact_person_name?: string | null
-          country?: string | null
-          created_at?: string
-          created_by?: string | null
-          district?: string | null
-          email?: string | null
-          gst_number?: string | null
-          ledger_id: string
-          mobile_number?: string | null
-          state?: string | null
-          updated_at?: string
-          zip_code?: string | null
-          pan_number?: string | null
-        }
+          address?: string | null;
+          business_logo?: string | null;
+          business_name: string;
+          city?: string | null;
+          contact_person_name?: string | null;
+          country?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          district?: string | null;
+          email?: string | null;
+          gst_number?: string | null;
+          ledger_id: string;
+          mobile_number?: string | null;
+          state?: string | null;
+          updated_at?: string;
+          zip_code?: string | null;
+          pan_number?: string | null;
+        };
         Update: {
-          address?: string | null
-          business_logo?: string | null
-          business_name?: string
-          city?: string | null
-          contact_person_name?: string | null
-          country?: string | null
-          created_at?: string
-          created_by?: string | null
-          district?: string | null
-          email?: string | null
-          gst_number?: string | null
-          ledger_id?: string
-          mobile_number?: string | null
-          state?: string | null
-          updated_at?: string
-          zip_code?: string | null
-          pan_number?: string | null
-        }
+          address?: string | null;
+          business_logo?: string | null;
+          business_name?: string;
+          city?: string | null;
+          contact_person_name?: string | null;
+          country?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          district?: string | null;
+          email?: string | null;
+          gst_number?: string | null;
+          ledger_id?: string;
+          mobile_number?: string | null;
+          state?: string | null;
+          updated_at?: string;
+          zip_code?: string | null;
+          pan_number?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "ledgers_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "ledgers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       ledger_logs: {
         Row: {
-          changed_at: string
-          changed_by: string | null
-          changes: Json | null
-          id: number
-          ledger_id: string | null
-        }
+          changed_at: string;
+          changed_by: string | null;
+          changes: Json | null;
+          id: number;
+          ledger_id: string | null;
+        };
         Insert: {
-          changed_at?: string
-          changed_by?: string | null
-          changes?: Json | null
-          id?: number
-          ledger_id?: string | null
-        }
+          changed_at?: string;
+          changed_by?: string | null;
+          changes?: Json | null;
+          id?: number;
+          ledger_id?: string | null;
+        };
         Update: {
-          changed_at?: string
-          changed_by?: string | null
-          changes?: Json | null
-          id?: number
-          ledger_id?: string | null
-        }
+          changed_at?: string;
+          changed_by?: string | null;
+          changes?: Json | null;
+          id?: number;
+          ledger_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "ledger_logs_changed_by_fkey"
-            columns: ["changed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "ledger_logs_changed_by_fkey";
+            columns: ["changed_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ledger_logs_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "ledger_logs_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
-        ]
-      }
+        ];
+      };
       products: {
         Row: {
-          created_at: string
-          created_by: string | null
-          id: number
-          product_brand: string | null
-          product_category: string
-          product_color: string | null
-          product_country: string | null
-          product_description: string | null
-          product_image: string | null
-          product_material: string | null
-          product_name: string
-          product_qty: number | null
-          product_size: string | null
-          product_sku: string
-          product_status: string | null
-          product_sub_category: string | null
-          updated_at: string
-          wash_care: string | null
-        }
+          created_at: string;
+          created_by: string | null;
+          id: number;
+          product_brand: string | null;
+          product_category: string;
+          product_color: string | null;
+          product_country: string | null;
+          product_description: string | null;
+          product_image: string | null;
+          product_material: string | null;
+          product_name: string;
+          product_qty: number | null;
+          product_size: string | null;
+          product_sku: string;
+          product_status: string | null;
+          product_sub_category: string | null;
+          updated_at: string;
+          wash_care: string | null;
+        };
         Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: number
-          product_brand?: string | null
-          product_category: string
-          product_color?: string | null
-          product_country?: string | null
-          product_description?: string | null
-          product_image?: string | null
-          product_material?: string | null
-          product_name: string
-          product_qty?: number | null
-          product_size?: string | null
-          product_sku: string
-          product_status?: string | null
-          product_sub_category?: string | null
-          updated_at?: string
-          wash_care?: string | null
-        }
+          created_at?: string;
+          created_by?: string | null;
+          id?: number;
+          product_brand?: string | null;
+          product_category: string;
+          product_color?: string | null;
+          product_country?: string | null;
+          product_description?: string | null;
+          product_image?: string | null;
+          product_material?: string | null;
+          product_name: string;
+          product_qty?: number | null;
+          product_size?: string | null;
+          product_sku: string;
+          product_status?: string | null;
+          product_sub_category?: string | null;
+          updated_at?: string;
+          wash_care?: string | null;
+        };
         Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: number
-          product_brand?: string | null
-          product_category?: string
-          product_color?: string | null
-          product_country?: string | null
-          product_description?: string | null
-          product_image?: string | null
-          product_material?: string | null
-          product_name?: string
-          product_qty?: number | null
-          product_size?: string | null
-          product_sku?: string
-          product_status?: string | null
-          product_sub_category?: string | null
-          updated_at?: string
-          wash_care?: string | null
-        }
+          created_at?: string;
+          created_by?: string | null;
+          id?: number;
+          product_brand?: string | null;
+          product_category?: string;
+          product_color?: string | null;
+          product_country?: string | null;
+          product_description?: string | null;
+          product_image?: string | null;
+          product_material?: string | null;
+          product_name?: string;
+          product_qty?: number | null;
+          product_size?: string | null;
+          product_sku?: string;
+          product_status?: string | null;
+          product_sub_category?: string | null;
+          updated_at?: string;
+          wash_care?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "products_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "products_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       profiles: {
         Row: {
-          address: string | null
-          city: string | null
-          country: string | null
-          created_at: string
-          dob: string | null
-          document_number: string | null
-          document_type: string | null
-          email: string
-          first_name: string | null
-          id: string
-          last_name: string | null
-          mobile: string | null
-          profile_photo: string | null
-          state: string | null
-          updated_at: string
-          user_role: string | null
-          user_status: string | null
-        }
+          address: string | null;
+          city: string | null;
+          country: string | null;
+          created_at: string;
+          dob: string | null;
+          document_number: string | null;
+          document_type: string | null;
+          email: string;
+          first_name: string | null;
+          id: string;
+          last_name: string | null;
+          mobile: string | null;
+          profile_photo: string | null;
+          state: string | null;
+          updated_at: string;
+          user_role: string | null;
+          user_status: string | null;
+        };
         Insert: {
-          address?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string
-          dob?: string | null
-          document_number?: string | null
-          document_type?: string | null
-          email: string
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          mobile?: string | null
-          profile_photo?: string | null
-          state?: string | null
-          updated_at?: string
-          user_role?: string | null
-          user_status?: string | null
-        }
+          address?: string | null;
+          city?: string | null;
+          country?: string | null;
+          created_at?: string;
+          dob?: string | null;
+          document_number?: string | null;
+          document_type?: string | null;
+          email: string;
+          first_name?: string | null;
+          id: string;
+          last_name?: string | null;
+          mobile?: string | null;
+          profile_photo?: string | null;
+          state?: string | null;
+          updated_at?: string;
+          user_role?: string | null;
+          user_status?: string | null;
+        };
         Update: {
-          address?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string
-          dob?: string | null
-          document_number?: string | null
-          document_type?: string | null
-          email?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          mobile?: string | null
-          profile_photo?: string | null
-          state?: string | null
-          updated_at?: string
-          user_role?: string | null
-          user_status?: string | null
-        }
+          address?: string | null;
+          city?: string | null;
+          country?: string | null;
+          created_at?: string;
+          dob?: string | null;
+          document_number?: string | null;
+          document_type?: string | null;
+          email?: string;
+          first_name?: string | null;
+          id?: string;
+          last_name?: string | null;
+          mobile?: string | null;
+          profile_photo?: string | null;
+          state?: string | null;
+          updated_at?: string;
+          user_role?: string | null;
+          user_status?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       purchase_orders: {
         Row: {
-          created_at: string
-          created_by: string | null
-          delivery_date: string | null
-          description: string | null
-          id: number
-          items: Json | null
-          ledger_id: string | null
-          po_date: string
-          po_number: string
-          status: string | null
-          supplier_name: string
-          terms_conditions: string | null
-          total_amount: number
-          updated_at: string
-        }
+          created_at: string;
+          created_by: string | null;
+          delivery_date: string | null;
+          description: string | null;
+          id: number;
+          items: Json | null;
+          ledger_id: string | null;
+          po_date: string;
+          po_number: string;
+          status: string | null;
+          supplier_name: string;
+          terms_conditions: string | null;
+          total_amount: number;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          created_by?: string | null
-          delivery_date?: string | null
-          description?: string | null
-          id?: number
-          items?: Json | null
-          ledger_id?: string | null
-          po_date: string
-          po_number: string
-          status?: string | null
-          supplier_name: string
-          terms_conditions?: string | null
-          total_amount?: number
-          updated_at?: string
-        }
+          created_at?: string;
+          created_by?: string | null;
+          delivery_date?: string | null;
+          description?: string | null;
+          id?: number;
+          items?: Json | null;
+          ledger_id?: string | null;
+          po_date: string;
+          po_number: string;
+          status?: string | null;
+          supplier_name: string;
+          terms_conditions?: string | null;
+          total_amount?: number;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          created_by?: string | null
-          delivery_date?: string | null
-          description?: string | null
-          id?: number
-          items?: Json | null
-          ledger_id?: string | null
-          po_date?: string
-          po_number?: string
-          status?: string | null
-          supplier_name?: string
-          terms_conditions?: string | null
-          total_amount?: number
-          updated_at?: string
-        }
+          created_at?: string;
+          created_by?: string | null;
+          delivery_date?: string | null;
+          description?: string | null;
+          id?: number;
+          items?: Json | null;
+          ledger_id?: string | null;
+          po_date?: string;
+          po_number?: string;
+          status?: string | null;
+          supplier_name?: string;
+          terms_conditions?: string | null;
+          total_amount?: number;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "purchase_orders_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "purchase_orders_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "purchase_orders_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "purchase_orders_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
-        ]
-      }
+        ];
+      };
       shorting_entries: {
         Row: {
-          id: number
-          entry_date: string
-          ledger_id: string | null
-          weaver_challan_id: number | null
-          quality_name: string | null
-          shorting_qty: number
-          weaver_challan_qty: number
-          created_by: string | null
-          created_at: string
-          updated_at: string
-        }
+          id: number;
+          entry_date: string;
+          ledger_id: string | null;
+          weaver_challan_id: number | null;
+          quality_name: string | null;
+          shorting_qty: number;
+          weaver_challan_qty: number;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: number
-          entry_date?: string
-          ledger_id?: string | null
-          weaver_challan_id?: number | null
-          quality_name?: string | null
-          shorting_qty: number
-          weaver_challan_qty?: number
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
+          id?: number;
+          entry_date?: string;
+          ledger_id?: string | null;
+          weaver_challan_id?: number | null;
+          quality_name?: string | null;
+          shorting_qty: number;
+          weaver_challan_qty?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: number
-          entry_date?: string
-          ledger_id?: string | null
-          weaver_challan_id?: number | null
-          quality_name?: string | null
-          shorting_qty?: number
-          weaver_challan_qty?: number
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
+          id?: number;
+          entry_date?: string;
+          ledger_id?: string | null;
+          weaver_challan_id?: number | null;
+          quality_name?: string | null;
+          shorting_qty?: number;
+          weaver_challan_qty?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "shorting_entries_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "shorting_entries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "shorting_entries_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "shorting_entries_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
           {
-            foreignKeyName: "shorting_entries_weaver_challan_id_fkey"
-            columns: ["weaver_challan_id"]
-            isOneToOne: true
-            referencedRelation: "weaver_challans"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+            foreignKeyName: "shorting_entries_weaver_challan_id_fkey";
+            columns: ["weaver_challan_id"];
+            isOneToOne: true;
+            referencedRelation: "weaver_challans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       weaver_challans: {
         Row: {
-          batch_number: string
-          challan_date: string
-          challan_no: string
-          created_at: string
-          created_by: string | null
-          fold_cm: number | null
-          id: number
-          ledger_id: string | null
-          lr_number: string | null
-          ms_party_name: string
-          quality_details: Json | null
-          taka: number
-          taka_details: Json | null
-          total_grey_mtr: number
-          transport_charge: number | null
-          transport_name: string | null
-          updated_at: string
-          width_inch: number | null
-          vendor_ledger_id: string | null
-          vendor_invoice_number: string | null
-          vendor_amount: number | null
-          sgst: string | null
-          cgst: string | null
-          igst: string | null
-        }
+          batch_number: string;
+          challan_date: string;
+          challan_no: string;
+          created_at: string;
+          created_by: string | null;
+          fold_cm: number | null;
+          id: number;
+          ledger_id: string | null;
+          lr_number: string | null;
+          ms_party_name: string;
+          quality_details: Json | null;
+          taka: number;
+          taka_details: Json | null;
+          total_grey_mtr: number;
+          transport_charge: number | null;
+          transport_name: string | null;
+          updated_at: string;
+          width_inch: number | null;
+          vendor_ledger_id: string | null;
+          vendor_invoice_number: string | null;
+          vendor_amount: number | null;
+          sgst: string | null;
+          cgst: string | null;
+          igst: string | null;
+        };
         Insert: {
-          batch_number: string
-          challan_date: string
-          challan_no: string
-          created_at?: string
-          created_by?: string | null
-          fold_cm?: number | null
-          id?: number
-          ledger_id?: string | null
-          lr_number?: string | null
-          ms_party_name: string
-          quality_details?: Json | null
-          taka: number
-          taka_details?: Json | null
-          total_grey_mtr: number
-          transport_charge?: number | null
-          transport_name?: string | null
-          updated_at?: string
-          width_inch?: number | null
-          vendor_ledger_id?: string | null
-          vendor_invoice_number?: string | null
-          vendor_amount?: number | null
-          sgst?: string | null
-          cgst?: string | null
-          igst?: string | null
-        }
+          batch_number: string;
+          challan_date: string;
+          challan_no: string;
+          created_at?: string;
+          created_by?: string | null;
+          fold_cm?: number | null;
+          id?: number;
+          ledger_id?: string | null;
+          lr_number?: string | null;
+          ms_party_name: string;
+          quality_details?: Json | null;
+          taka: number;
+          taka_details?: Json | null;
+          total_grey_mtr: number;
+          transport_charge?: number | null;
+          transport_name?: string | null;
+          updated_at?: string;
+          width_inch?: number | null;
+          vendor_ledger_id?: string | null;
+          vendor_invoice_number?: string | null;
+          vendor_amount?: number | null;
+          sgst?: string | null;
+          cgst?: string | null;
+          igst?: string | null;
+        };
         Update: {
-          batch_number?: string
-          challan_date?: string
-          challan_no?: string
-          created_at?: string
-          created_by?: string | null
-          fold_cm?: number | null
-          id?: number
-          ledger_id?: string | null
-          lr_number?: string | null
-          ms_party_name?: string
-          quality_details?: Json | null
-          taka?: number
-          taka_details?: Json | null
-          total_grey_mtr?: number
-          transport_charge?: number | null
-          transport_name?: string | null
-          updated_at?: string
-          width_inch?: number | null
-          vendor_ledger_id?: string | null
-          vendor_invoice_number?: string | null
-          vendor_amount?: number | null
-          sgst?: string | null
-          cgst?: string | null
-          igst?: string | null
-        }
+          batch_number?: string;
+          challan_date?: string;
+          challan_no?: string;
+          created_at?: string;
+          created_by?: string | null;
+          fold_cm?: number | null;
+          id?: number;
+          ledger_id?: string | null;
+          lr_number?: string | null;
+          ms_party_name?: string;
+          quality_details?: Json | null;
+          taka?: number;
+          taka_details?: Json | null;
+          total_grey_mtr?: number;
+          transport_charge?: number | null;
+          transport_name?: string | null;
+          updated_at?: string;
+          width_inch?: number | null;
+          vendor_ledger_id?: string | null;
+          vendor_invoice_number?: string | null;
+          vendor_amount?: number | null;
+          sgst?: string | null;
+          cgst?: string | null;
+          igst?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "weaver_challans_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "weaver_challans_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "weaver_challans_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "weaver_challans_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
           {
-            foreignKeyName: "weaver_challans_vendor_ledger_id_fkey"
-            columns: ["vendor_ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "weaver_challans_vendor_ledger_id_fkey";
+            columns: ["vendor_ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
-        ]
-      }
+        ];
+      };
       payment_vouchers: {
         Row: {
-          id: number
-          date: string
-          ledger_id: string | null
-          payment_for: string
-          payment_type: string
-          amount: number
-          created_by: string | null
-          created_at: string
-          updated_at: string
-        }
+          id: number;
+          date: string;
+          ledger_id: string | null;
+          payment_for: string;
+          payment_type: string;
+          amount: number;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: number
-          date: string
-          ledger_id?: string | null
-          payment_for: string
-          payment_type: string
-          amount: number
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
+          id?: number;
+          date: string;
+          ledger_id?: string | null;
+          payment_for: string;
+          payment_type: string;
+          amount: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: number
-          date?: string
-          ledger_id?: string | null
-          payment_for?: string
-          payment_type?: string
-          amount?: number
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
+          id?: number;
+          date?: string;
+          ledger_id?: string | null;
+          payment_for?: string;
+          payment_type?: string;
+          amount?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "payment_vouchers_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "payment_vouchers_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "payment_vouchers_ledger_id_fkey"
-            columns: ["ledger_id"]
-            isOneToOne: false
-            referencedRelation: "ledgers"
-            referencedColumns: ["ledger_id"]
+            foreignKeyName: "payment_vouchers_ledger_id_fkey";
+            columns: ["ledger_id"];
+            isOneToOne: false;
+            referencedRelation: "ledgers";
+            referencedColumns: ["ledger_id"];
           },
-        ]
-      }
+        ];
+      };
       payment_voucher_logs: {
         Row: {
-          id: number
-          payment_voucher_id: number | null
-          changed_by: string | null
-          changes: Json | null
-          changed_at: string
-        }
+          id: number;
+          payment_voucher_id: number | null;
+          changed_by: string | null;
+          changes: Json | null;
+          changed_at: string;
+        };
         Insert: {
-          id?: number
-          payment_voucher_id?: number | null
-          changed_by?: string | null
-          changes?: Json | null
-          changed_at?: string
-        }
+          id?: number;
+          payment_voucher_id?: number | null;
+          changed_by?: string | null;
+          changes?: Json | null;
+          changed_at?: string;
+        };
         Update: {
-          id?: number
-          payment_voucher_id?: number | null
-          changed_by?: string | null
-          changes?: Json | null
-          changed_at?: string
-        }
+          id?: number;
+          payment_voucher_id?: number | null;
+          changed_by?: string | null;
+          changes?: Json | null;
+          changed_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "payment_voucher_logs_changed_by_fkey"
-            columns: ["changed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "payment_voucher_logs_changed_by_fkey";
+            columns: ["changed_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "payment_voucher_logs_payment_voucher_id_fkey"
-            columns: ["payment_voucher_id"]
-            isOneToOne: false
-            referencedRelation: "payment_vouchers"
-            referencedColumns: ["id"]
+            foreignKeyName: "payment_voucher_logs_payment_voucher_id_fkey";
+            columns: ["payment_voucher_id"];
+            isOneToOne: false;
+            referencedRelation: "payment_vouchers";
+            referencedColumns: ["id"];
           },
-        ]
-      }
-    }
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       handle_new_user: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never>;
         Returns: {
-          id: string
-          aud: string
-          role: string
-          email: string
-          phone: string
-          created_at: string
-          last_sign_in_at: string
-          app_metadata: Json
-          user_metadata: Json
-          identities: Json
-          updated_at: string
-        }
-      }
+          id: string;
+          aud: string;
+          role: string;
+          email: string;
+          phone: string;
+          created_at: string;
+          last_sign_in_at: string;
+          app_metadata: Json;
+          user_metadata: Json;
+          identities: Json;
+          updated_at: string;
+        };
+      };
       log_expense_changes: {
-        Args: Record<PropertyKey, never>
-        Returns: unknown
-      }
+        Args: Record<PropertyKey, never>;
+        Returns: unknown;
+      };
       log_ledger_changes: {
-        Args: Record<PropertyKey, never>
-        Returns: unknown
-      }
+        Args: Record<PropertyKey, never>;
+        Returns: unknown;
+      };
       log_payment_voucher_changes: {
-        Args: Record<PropertyKey, never>
-        Returns: unknown
-      }
-    }
+        Args: Record<PropertyKey, never>;
+        Returns: unknown;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
 export type Tables<
   PublicTableNameOrOptions extends
@@ -884,7 +884,7 @@ export type Tables<
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
@@ -892,11 +892,11 @@ export type Tables<
         Database["public"]["Views"])
     ? (Database["public"]["Tables"] &
         Database["public"]["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
@@ -907,17 +907,17 @@ export type TablesInsert<
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
     ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
@@ -928,17 +928,17 @@ export type TablesUpdate<
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
     ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   PublicEnumNameOrOptions extends
@@ -951,4 +951,4 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
     ? Database["public"]["Enums"][PublicEnumNameOrOptions]
-    : never
+    : never;

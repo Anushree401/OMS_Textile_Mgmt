@@ -6,7 +6,7 @@ export const useToast = () => {
   const showToast = (
     message: string,
     type: ToastType = "success",
-    duration: number = 4000
+    duration: number = 4000,
   ) => {
     switch (type) {
       case "success":

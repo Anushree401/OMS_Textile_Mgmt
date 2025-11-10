@@ -25,6 +25,7 @@ The stitching challan table (`isteaching_challans`) already stores size informat
 ### 4. Barcode Content
 
 Each barcode contains the following product-specific data:
+
 - Product Name
 - Product Description
 - Batch Number

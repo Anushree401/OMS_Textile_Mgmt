@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Enhanced batch history feature with professional UI
 - Summary cards showing key metrics for each batch
 - Remaining quantity calculation in batch history
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced TypeScript types for stitching challan data
 
 ### Changed
+
 - Updated batch history database function to include quality name as type in shorting entries
 - Improved UI/UX of batch history page with beautiful card layouts
 - Enhanced README.md with information about batch history feature
@@ -27,11 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated stitching challans table with detailed top/bottom breakdown
 
 ### Fixed
+
 - Type error in batch history page where string|array was not properly handled
 
 ## [1.0.0] - 2025-01-15
 
 ### Added
+
 - Initial release of Bhaktinandan OMS
 - Complete authentication system with role-based access control
 - Full database schema with RLS policies

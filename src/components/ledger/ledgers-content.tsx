@@ -1,20 +1,26 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -22,27 +28,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   Phone,
   Mail,
@@ -51,161 +57,184 @@ import {
   Filter,
   X,
   Loader2,
-} from 'lucide-react'
-import { Database } from '@/types/database'
-import { formatDate } from '@/lib/utils'
-import Image from 'next/image'
+} from "lucide-react";
+import { Database } from "@/types/database";
+import { formatDate } from "@/lib/utils";
+import Image from "next/image";
 
-type Ledger = Database['public']['Tables']['ledgers']['Row'] & {
-  profiles: { email: string } | null
-}
-type LedgerLog = Database['public']['Tables']['ledger_logs']['Row'] & {
-  profiles: { email: string } | null
-}
-type UserRole = Database['public']['Tables']['profiles']['Row']['user_role']
+type Ledger = Database["public"]["Tables"]["ledgers"]["Row"] & {
+  profiles: { email: string } | null;
+};
+type LedgerLog = Database["public"]["Tables"]["ledger_logs"]["Row"] & {
+  profiles: { email: string } | null;
+};
+type UserRole = Database["public"]["Tables"]["profiles"]["Row"]["user_role"];
 
 interface LedgersContentProps {
-  ledgers: Ledger[]
-  totalCount: number
-  userRole: UserRole
+  ledgers: Ledger[];
+  totalCount: number;
+  userRole: UserRole;
 }
 
-export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContentProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
-  const [filters, setFilters] = useState({
-    state: searchParams.get('state') || '',
-    city: searchParams.get('city') || '',
-    fromDate: searchParams.get('fromDate') || '',
-    toDate: searchParams.get('toDate') || '',
-  })
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false)
-  const [selectedLedgerLogs, setSelectedLedgerLogs] = useState<LedgerLog[]>([])
-  const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null)
-  const [states, setStates] = useState<string[]>([])
-  const [cities, setCities] = useState<string[]>([])
-  const [navigatingTo, setNavigatingTo] = useState<string | null>(null)
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+export function LedgersContent({
+  ledgers,
+  totalCount,
+  userRole,
+}: LedgersContentProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const canEdit = userRole === 'Admin' || userRole === 'Manager'
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || "",
+  );
+  const [filters, setFilters] = useState({
+    state: searchParams.get("state") || "",
+    city: searchParams.get("city") || "",
+    fromDate: searchParams.get("fromDate") || "",
+    toDate: searchParams.get("toDate") || "",
+  });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedLedgerLogs, setSelectedLedgerLogs] = useState<LedgerLog[]>([]);
+  const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null);
+  const [states, setStates] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const canEdit = userRole === "Admin" || userRole === "Manager";
 
   useEffect(() => {
     const fetchStates = async () => {
-      const { data, error } = await supabase.from('ledgers').select('state').neq('state', '')
+      const { data, error } = await supabase
+        .from("ledgers")
+        .select("state")
+        .neq("state", "");
       if (data) {
-        const uniqueStates = [...new Set(data.map(item => item.state).filter(Boolean))] as string[]
-        setStates(uniqueStates)
+        const uniqueStates = [
+          ...new Set(data.map((item) => item.state).filter(Boolean)),
+        ] as string[];
+        setStates(uniqueStates);
       }
-    }
-    fetchStates()
-  }, [])
+    };
+    fetchStates();
+  }, []);
 
   useEffect(() => {
     if (filters.state) {
       const fetchCities = async () => {
-        const { data, error } = await supabase.from('ledgers').select('city').eq('state', filters.state).neq('city', '')
+        const { data, error } = await supabase
+          .from("ledgers")
+          .select("city")
+          .eq("state", filters.state)
+          .neq("city", "");
         if (data) {
-          const uniqueCities = [...new Set(data.map(item => item.city).filter(Boolean))] as string[]
-          setCities(uniqueCities)
+          const uniqueCities = [
+            ...new Set(data.map((item) => item.city).filter(Boolean)),
+          ] as string[];
+          setCities(uniqueCities);
         }
-      }
-      fetchCities()
+      };
+      fetchCities();
     } else {
-      setCities([])
+      setCities([]);
     }
-  }, [filters.state])
+  }, [filters.state]);
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   const applyFilters = () => {
-    const params = new URLSearchParams(searchParams)
-    params.set('page', '1')
-    if (searchTerm) params.set('search', searchTerm)
-    else params.delete('search')
-    
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    if (searchTerm) params.set("search", searchTerm);
+    else params.delete("search");
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        params.set(key, value)
+        params.set(key, value);
       } else {
-        params.delete(key)
+        params.delete(key);
       }
-    })
-    
-    router.push(`/dashboard/ledger/list?${params.toString()}`)
-  }
+    });
+
+    router.push(`/dashboard/ledger/list?${params.toString()}`);
+  };
 
   const clearFilters = () => {
-    setSearchTerm('')
-    setFilters({ state: '', city: '', fromDate: '', toDate: '' })
-    router.push('/dashboard/ledger/list')
-  }
+    setSearchTerm("");
+    setFilters({ state: "", city: "", fromDate: "", toDate: "" });
+    router.push("/dashboard/ledger/list");
+  };
 
   const handleDeleteLedger = async (ledgerId: string, businessName: string) => {
-    if (!confirm(`Are you sure you want to delete "${businessName}"? This action cannot be undone.`)) {
-      return
+    if (
+      !confirm(
+        `Are you sure you want to delete "${businessName}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(ledgerId)
+    setDeletingId(ledgerId);
 
     try {
       const { error } = await supabase
-        .from('ledgers')
+        .from("ledgers")
         .delete()
-        .eq('ledger_id', ledgerId)
+        .eq("ledger_id", ledgerId);
 
       if (error) {
-        toast.error('Failed to delete ledger. Please try again.')
-        return
+        toast.error("Failed to delete ledger. Please try again.");
+        return;
       }
 
-      toast.success(`Ledger "${businessName}" has been deleted successfully.`)
+      toast.success(`Ledger "${businessName}" has been deleted successfully.`);
       // Refresh the page to show updated data
-      router.refresh()
+      router.refresh();
     } catch (err) {
-      console.error('Error deleting ledger:', err)
-      toast.error('An unexpected error occurred. Please try again.')
+      console.error("Error deleting ledger:", err);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   const handleShowLogs = async (ledger: Ledger) => {
-    setSelectedLedger(ledger)
-    setIsLogModalOpen(true)
+    setSelectedLedger(ledger);
+    setIsLogModalOpen(true);
 
     const { data: logs, error } = await supabase
-      .from('ledger_logs')
+      .from("ledger_logs")
       .select(`*`)
-      .eq('ledger_id', ledger.ledger_id)
-      .order('changed_at', { ascending: false })
+      .eq("ledger_id", ledger.ledger_id)
+      .order("changed_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching ledger logs:', error)
-      alert('Failed to fetch change logs. Please try again.')
-      return
+      console.error("Error fetching ledger logs:", error);
+      alert("Failed to fetch change logs. Please try again.");
+      return;
     }
 
-    const userIds = logs.map(log => log.changed_by).filter(Boolean) as string[];
+    const userIds = logs
+      .map((log) => log.changed_by)
+      .filter(Boolean) as string[];
     const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, email')
-      .in('id', userIds)
+      .from("profiles")
+      .select("id, email")
+      .in("id", userIds);
 
-    const logsWithEmails = logs.map(log => {
-      const profile = profiles?.find(p => p.id === log.changed_by)
+    const logsWithEmails = logs.map((log) => {
+      const profile = profiles?.find((p) => p.id === log.changed_by);
       return {
         ...log,
-        profiles: profile ? { email: profile.email } : null
-      }
-    })
-    
-    setSelectedLedgerLogs(logsWithEmails as LedgerLog[])
-  }
+        profiles: profile ? { email: profile.email } : null,
+      };
+    });
+
+    setSelectedLedgerLogs(logsWithEmails as LedgerLog[]);
+  };
 
   return (
     <div className="space-y-6">
@@ -218,7 +247,7 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
           </p>
         </div>
         {canEdit && (
-          <Button onClick={() => router.push('/dashboard/ledger/create')}>
+          <Button onClick={() => router.push("/dashboard/ledger/create")}>
             <Plus className="h-4 w-4 mr-2" />
             Create Ledger
           </Button>
@@ -253,23 +282,38 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
             </div>
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
-              <Select value={filters.state} onValueChange={(value) => handleFilterChange('state', value)}>
+              <Select
+                value={filters.state}
+                onValueChange={(value) => handleFilterChange("state", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select State" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {states.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {states.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
-              <Select value={filters.city} onValueChange={(value) => handleFilterChange('city', value)} disabled={!filters.state}>
+              <Select
+                value={filters.city}
+                onValueChange={(value) => handleFilterChange("city", value)}
+                disabled={!filters.state}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select City" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {cities.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -279,7 +323,7 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                 id="fromDate"
                 type="date"
                 value={filters.fromDate}
-                onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                onChange={(e) => handleFilterChange("fromDate", e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -288,7 +332,7 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                 id="toDate"
                 type="date"
                 value={filters.toDate}
-                onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                onChange={(e) => handleFilterChange("toDate", e.target.value)}
               />
             </div>
           </div>
@@ -308,7 +352,10 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
       {/* Ledgers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {ledgers.map((ledger) => (
-          <Card key={ledger.ledger_id} className="hover:shadow-md transition-shadow">
+          <Card
+            key={ledger.ledger_id}
+            className="hover:shadow-md transition-shadow"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
@@ -329,22 +376,31 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                     )}
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{ledger.business_name}</CardTitle>
-                    <p className="text-sm text-gray-500 font-mono">{ledger.ledger_id}</p>
+                    <CardTitle className="text-lg">
+                      {ledger.business_name}
+                    </CardTitle>
+                    <p className="text-sm text-gray-500 font-mono">
+                      {ledger.ledger_id}
+                    </p>
                   </div>
                 </div>
-                
-                <DropdownMenu open={openDropdown === ledger.ledger_id} onOpenChange={(isOpen) => setOpenDropdown(isOpen ? ledger.ledger_id : null)}>
+
+                <DropdownMenu
+                  open={openDropdown === ledger.ledger_id}
+                  onOpenChange={(isOpen) =>
+                    setOpenDropdown(isOpen ? ledger.ledger_id : null)
+                  }
+                >
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className='bg-white' >
+                  <DropdownMenuContent align="end" className="bg-white">
                     <DropdownMenuItem
                       onClick={() => {
-                        setNavigatingTo(ledger.ledger_id)
-                        router.push(`/dashboard/ledger/${ledger.ledger_id}`)
+                        setNavigatingTo(ledger.ledger_id);
+                        router.push(`/dashboard/ledger/${ledger.ledger_id}`);
                       }}
                       disabled={navigatingTo === ledger.ledger_id}
                     >
@@ -358,8 +414,10 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                     {canEdit && (
                       <DropdownMenuItem
                         onClick={() => {
-                          setNavigatingTo(ledger.ledger_id)
-                          router.push(`/dashboard/ledger/${ledger.ledger_id}/edit`)
+                          setNavigatingTo(ledger.ledger_id);
+                          router.push(
+                            `/dashboard/ledger/${ledger.ledger_id}/edit`,
+                          );
                         }}
                         disabled={navigatingTo === ledger.ledger_id}
                       >
@@ -372,10 +430,12 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                       </DropdownMenuItem>
                     )}
                     {canEdit && (
-                      <DropdownMenuItem onClick={() => {
-                        handleShowLogs(ledger)
-                        setOpenDropdown(null)
-                      }}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          handleShowLogs(ledger);
+                          setOpenDropdown(null);
+                        }}
+                      >
                         <History className="mr-2 h-4 w-4" />
                         Change Logs
                       </DropdownMenuItem>
@@ -383,18 +443,25 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                     {canEdit && (
                       <DropdownMenuItem
                         className="text-red-600"
-                        onClick={() => handleDeleteLedger(ledger.ledger_id, ledger.business_name)}
+                        onClick={() =>
+                          handleDeleteLedger(
+                            ledger.ledger_id,
+                            ledger.business_name,
+                          )
+                        }
                         disabled={deletingId === ledger.ledger_id}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        {deletingId === ledger.ledger_id ? 'Deleting...' : 'Delete'}
+                        {deletingId === ledger.ledger_id
+                          ? "Deleting..."
+                          : "Delete"}
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-3">
               {ledger.contact_person_name && (
                 <div className="flex items-center text-sm text-gray-600">
@@ -402,25 +469,27 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                   <span>{ledger.contact_person_name}</span>
                 </div>
               )}
-              
+
               {ledger.mobile_number && (
                 <div className="flex items-center text-sm text-gray-600">
                   <Phone className="h-4 w-4 mr-2" />
                   <span>{ledger.mobile_number}</span>
                 </div>
               )}
-              
+
               {ledger.email && (
                 <div className="flex items-center text-sm text-gray-600">
                   <Mail className="h-4 w-4 mr-2" />
                   <span className="truncate">{ledger.email}</span>
                 </div>
               )}
-              
+
               {ledger.city && (
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="h-4 w-4 mr-2" />
-                  <span>{ledger.city}, {ledger.state}</span>
+                  <span>
+                    {ledger.city}, {ledger.state}
+                  </span>
                 </div>
               )}
 
@@ -433,7 +502,9 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
               )}
 
               <div className="pt-2 text-xs text-gray-600">
-                Created by {ledger.profiles?.email ? ledger.profiles.email : 'N/A'} on {formatDate(ledger.created_at)}
+                Created by{" "}
+                {ledger.profiles?.email ? ledger.profiles.email : "N/A"} on{" "}
+                {formatDate(ledger.created_at)}
               </div>
             </CardContent>
           </Card>
@@ -454,23 +525,26 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
       {/* Load More */}
       {ledgers.length < totalCount && (
         <div className="text-center">
-          <Button variant="outline">
-            Load More Ledgers
-          </Button>
+          <Button variant="outline">Load More Ledgers</Button>
         </div>
       )}
 
       {/* Change Log Modal */}
-      <Dialog open={isLogModalOpen} onOpenChange={(isOpen) => {
-        setIsLogModalOpen(isOpen)
-        if (!isOpen) {
-          setSelectedLedger(null)
-          setSelectedLedgerLogs([])
-        }
-      }}>
+      <Dialog
+        open={isLogModalOpen}
+        onOpenChange={(isOpen) => {
+          setIsLogModalOpen(isOpen);
+          if (!isOpen) {
+            setSelectedLedger(null);
+            setSelectedLedgerLogs([]);
+          }
+        }}
+      >
         <DialogContent className="max-w-3xl bg-white">
           <DialogHeader>
-            <DialogTitle>Change Log for {selectedLedger?.business_name}</DialogTitle>
+            <DialogTitle>
+              Change Log for {selectedLedger?.business_name}
+            </DialogTitle>
             <DialogDescription>
               Showing all changes made to this ledger.
             </DialogDescription>
@@ -488,7 +562,7 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                 <TableBody>
                   {selectedLedgerLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell>{log.profiles?.email || 'N/A'}</TableCell>
+                      <TableCell>{log.profiles?.email || "N/A"}</TableCell>
                       <TableCell>{formatDate(log.changed_at)}</TableCell>
                       <TableCell>
                         <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded-md text-xs">
@@ -500,11 +574,13 @@ export function LedgersContent({ ledgers, totalCount, userRole }: LedgersContent
                 </TableBody>
               </Table>
             ) : (
-              <p className="text-center text-gray-500 py-8">No changes have been logged for this ledger yet.</p>
+              <p className="text-center text-gray-500 py-8">
+                No changes have been logged for this ledger yet.
+              </p>
             )}
           </div>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

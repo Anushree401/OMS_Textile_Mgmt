@@ -1,7 +1,13 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { redirect, notFound } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   Edit,
@@ -10,10 +16,10 @@ import {
   Building2,
   Calendar,
   Package,
-  Truck 
-} from 'lucide-react'
-import Link from 'next/link'
-import { formatDate } from '@/lib/utils'
+  Truck,
+} from "lucide-react";
+import Link from "next/link";
+import { formatDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -21,12 +27,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Tables, Json } from '@/types/supabase'
+} from "@/components/ui/table";
+import { Tables, Json } from "@/types/supabase";
 
-type WeaverChallan = Tables<'weaver_challans'> & {
-  ledgers: Tables<'ledgers'> | null
-  vendor_ledgers: Tables<'ledgers'> | null
+type WeaverChallan = Tables<"weaver_challans"> & {
+  ledgers: Tables<"ledgers"> | null;
+  vendor_ledgers: Tables<"ledgers"> | null;
 };
 
 type QualityDetail = {
@@ -36,37 +42,42 @@ type QualityDetail = {
 
 interface WeaverChallanDetailPageProps {
   params: Promise<{
-    id: string
-  }>
+    id: string;
+  }>;
 }
 
-export default async function WeaverChallanDetailPage({ params }: WeaverChallanDetailPageProps) {
-  const supabase = createServerSupabaseClient()
-  
+export default async function WeaverChallanDetailPage({
+  params,
+}: WeaverChallanDetailPageProps) {
+  const supabase = createServerSupabaseClient();
+
   // Await the params
-  const resolvedParams = await params
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const resolvedParams = await params;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Get user profile
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   if (!profile) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Fetch weaver challan details with ledger info - use resolvedParams.id
   const { data: weaverChallan, error } = await supabase
-    .from('weaver_challans')
-    .select(`
+    .from("weaver_challans")
+    .select(
+      `
       *,
       ledgers:ledgers!weaver_challans_ledger_id_fkey (
         business_name,
@@ -88,38 +99,47 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
         state,
         gst_number
       )
-    `)
-    .eq('id', resolvedParams.id)
-    .single()
+    `,
+    )
+    .eq("id", resolvedParams.id)
+    .single();
 
   if (error || !weaverChallan) {
-    notFound()
+    notFound();
   }
 
-  const canEdit = profile.user_role === 'Admin' || profile.user_role === 'Manager'
+  const canEdit =
+    profile.user_role === "Admin" || profile.user_role === "Manager";
 
-  const parseQualityDetails = (qualityDetails: Json | null): QualityDetail[] => {
-    if (!qualityDetails) return []
+  const parseQualityDetails = (
+    qualityDetails: Json | null,
+  ): QualityDetail[] => {
+    if (!qualityDetails) return [];
     try {
-      const parsed = typeof qualityDetails === 'string' ? JSON.parse(qualityDetails) : qualityDetails;
+      const parsed =
+        typeof qualityDetails === "string"
+          ? JSON.parse(qualityDetails)
+          : qualityDetails;
       return Array.isArray(parsed) ? parsed : [];
     } catch {
-      return []
+      return [];
     }
-  }
+  };
 
   const qualityDetails = parseQualityDetails(weaverChallan.quality_details);
 
   const parseTakaDetails = (takaDetails: Json | null) => {
-    if (!takaDetails) return []
+    if (!takaDetails) return [];
     try {
-      return typeof takaDetails === 'string' ? JSON.parse(takaDetails) : takaDetails
+      return typeof takaDetails === "string"
+        ? JSON.parse(takaDetails)
+        : takaDetails;
     } catch {
-      return []
+      return [];
     }
-  }
+  };
 
-  const takaDetails = parseTakaDetails(weaverChallan.taka_details)
+  const takaDetails = parseTakaDetails(weaverChallan.taka_details);
 
   return (
     <div className="space-y-6">
@@ -133,7 +153,9 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Weaver Challan Details</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Weaver Challan Details
+            </h1>
             <p className="text-gray-600 mt-1">
               View production challan information and quality details
             </p>
@@ -147,7 +169,9 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
             </Button>
           </Link> */}
           {canEdit && (
-            <Link href={`/dashboard/production/weaver-challan/${weaverChallan.id}/edit`}>
+            <Link
+              href={`/dashboard/production/weaver-challan/${weaverChallan.id}/edit`}
+            >
               <Button>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Challan
@@ -168,28 +192,42 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Challan Number</label>
-              <p className="font-mono text-lg font-semibold">{weaverChallan.challan_no}</p>
+              <label className="text-sm font-medium text-gray-700">
+                Challan Number
+              </label>
+              <p className="font-mono text-lg font-semibold">
+                {weaverChallan.challan_no}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Batch Number</label>
-              <p className="font-mono text-lg font-semibold text-blue-600">{weaverChallan.batch_number}</p>
+              <label className="text-sm font-medium text-gray-700">
+                Batch Number
+              </label>
+              <p className="font-mono text-lg font-semibold text-blue-600">
+                {weaverChallan.batch_number}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Challan Date</label>
+              <label className="text-sm font-medium text-gray-700">
+                Challan Date
+              </label>
               <p className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                 {formatDate(weaverChallan.challan_date)}
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Rate Per Meter</label>
+              <label className="text-sm font-medium text-gray-700">
+                Rate Per Meter
+              </label>
               <p className="text-2xl font-bold text-green-600">
-                ₹{weaverChallan.total_grey_mtr} 
+                ₹{weaverChallan.total_grey_mtr}
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Taka Count</label>
+              <label className="text-sm font-medium text-gray-700">
+                Taka Count
+              </label>
               <p className="text-xl font-semibold">{weaverChallan.taka} taka</p>
             </div>
           </CardContent>
@@ -203,43 +241,67 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
                 <Building2 className="h-5 w-5 mr-2" />
                 Party Information
               </CardTitle>
-              <CardDescription>Weaver party details and contact information</CardDescription>
+              <CardDescription>
+                Weaver party details and contact information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* <div>
                 <label className="text-sm font-medium text-gray-700">MS Party Name</label>
                 <p className="text-lg font-semibold">{weaverChallan.ms_party_name}</p>
               </div> */}
-              
+
               {weaverChallan.ledgers && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Business Name</label>
-                    <p className="text-gray-900">{weaverChallan.ledgers.business_name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Contact Person</label>
-                    <p className="text-gray-900">{weaverChallan.ledgers.contact_person_name || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Mobile</label>
-                    <p className="text-gray-900">{weaverChallan.ledgers.mobile_number || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Email</label>
-                    <p className="text-gray-900">{weaverChallan.ledgers.email || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">GST Number</label>
-                    <p className="font-mono text-sm">{weaverChallan.ledgers.gst_number || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Address</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Business Name
+                    </label>
                     <p className="text-gray-900">
-                      {weaverChallan.ledgers.address ?
-                        `${weaverChallan.ledgers.address}, ${weaverChallan.ledgers.city}, ${weaverChallan.ledgers.state}` :
-                        'Not provided'
-                      }
+                      {weaverChallan.ledgers.business_name}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Contact Person
+                    </label>
+                    <p className="text-gray-900">
+                      {weaverChallan.ledgers.contact_person_name ||
+                        "Not specified"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Mobile
+                    </label>
+                    <p className="text-gray-900">
+                      {weaverChallan.ledgers.mobile_number || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Email
+                    </label>
+                    <p className="text-gray-900">
+                      {weaverChallan.ledgers.email || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      GST Number
+                    </label>
+                    <p className="font-mono text-sm">
+                      {weaverChallan.ledgers.gst_number || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Address
+                    </label>
+                    <p className="text-gray-900">
+                      {weaverChallan.ledgers.address
+                        ? `${weaverChallan.ledgers.address}, ${weaverChallan.ledgers.city}, ${weaverChallan.ledgers.state}`
+                        : "Not provided"}
                     </p>
                   </div>
                 </div>
@@ -247,14 +309,18 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
 
               {weaverChallan.delivery_at && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Delivery Location</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Delivery Location
+                  </label>
                   <p className="text-gray-900">{weaverChallan.delivery_at}</p>
                 </div>
               )}
 
               {weaverChallan.bill_no && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Bill Number</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Bill Number
+                  </label>
                   <p className="font-mono text-sm">{weaverChallan.bill_no}</p>
                 </div>
               )}
@@ -269,75 +335,146 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
                   <Building2 className="h-5 w-5 mr-2" />
                   Vendor Information
                 </CardTitle>
-                <CardDescription>Vendor details and invoice information</CardDescription>
+                <CardDescription>
+                  Vendor details and invoice information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {weaverChallan.vendor_ledgers && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Business Name</label>
-                      <p className="text-gray-900">{weaverChallan.vendor_ledgers.business_name}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        Business Name
+                      </label>
+                      <p className="text-gray-900">
+                        {weaverChallan.vendor_ledgers.business_name}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Contact Person</label>
-                      <p className="text-gray-900">{weaverChallan.vendor_ledgers.contact_person_name || 'Not specified'}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        Contact Person
+                      </label>
+                      <p className="text-gray-900">
+                        {weaverChallan.vendor_ledgers.contact_person_name ||
+                          "Not specified"}
+                      </p>
                     </div>
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Invoice/Challan Number (Vendor)</label>
-                  <p className="font-mono text-sm">{weaverChallan.vendor_invoice_number || 'Not provided'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Invoice/Challan Number (Vendor)
+                  </label>
+                  <p className="font-mono text-sm">
+                    {weaverChallan.vendor_invoice_number || "Not provided"}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Amount (Without GST)</label>
-                  <p className="text-lg font-semibold">₹{weaverChallan.vendor_amount?.toLocaleString() || '0.00'}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Amount (Without GST)
+                  </label>
+                  <p className="text-lg font-semibold">
+                    ₹{weaverChallan.vendor_amount?.toLocaleString() || "0.00"}
+                  </p>
                 </div>
-                
+
                 {/* GST Information */}
-                {(weaverChallan.sgst || weaverChallan.cgst || weaverChallan.igst) && (
+                {(weaverChallan.sgst ||
+                  weaverChallan.cgst ||
+                  weaverChallan.igst) && (
                   <div className="col-span-full">
-                    <label className="text-sm font-medium text-gray-700">GST Details</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      GST Details
+                    </label>
                     <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        {weaverChallan.sgst && weaverChallan.sgst !== 'Not Applicable' && (
-                          <div>
-                            <p className="text-gray-600">SGST ({weaverChallan.sgst}):</p>
-                            <p className="font-medium text-green-600">
-                              ₹{((weaverChallan.vendor_amount || 0) * (parseFloat(weaverChallan.sgst.replace('%', '')) / 100)).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
-                        {weaverChallan.cgst && weaverChallan.cgst !== 'Not Applicable' && (
-                          <div>
-                            <p className="text-gray-600">CGST ({weaverChallan.cgst}):</p>
-                            <p className="font-medium text-green-600">
-                              ₹{((weaverChallan.vendor_amount || 0) * (parseFloat(weaverChallan.cgst.replace('%', '')) / 100)).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
-                        {weaverChallan.igst && weaverChallan.igst !== 'Not Applicable' && (
-                          <div>
-                            <p className="text-gray-600">IGST ({weaverChallan.igst}):</p>
-                            <p className="font-medium text-green-600">
-                              ₹{((weaverChallan.vendor_amount || 0) * (parseFloat(weaverChallan.igst.replace('%', '')) / 100)).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
+                        {weaverChallan.sgst &&
+                          weaverChallan.sgst !== "Not Applicable" && (
+                            <div>
+                              <p className="text-gray-600">
+                                SGST ({weaverChallan.sgst}):
+                              </p>
+                              <p className="font-medium text-green-600">
+                                ₹
+                                {(
+                                  (weaverChallan.vendor_amount || 0) *
+                                  (parseFloat(
+                                    weaverChallan.sgst.replace("%", ""),
+                                  ) /
+                                    100)
+                                ).toFixed(2)}
+                              </p>
+                            </div>
+                          )}
+                        {weaverChallan.cgst &&
+                          weaverChallan.cgst !== "Not Applicable" && (
+                            <div>
+                              <p className="text-gray-600">
+                                CGST ({weaverChallan.cgst}):
+                              </p>
+                              <p className="font-medium text-green-600">
+                                ₹
+                                {(
+                                  (weaverChallan.vendor_amount || 0) *
+                                  (parseFloat(
+                                    weaverChallan.cgst.replace("%", ""),
+                                  ) /
+                                    100)
+                                ).toFixed(2)}
+                              </p>
+                            </div>
+                          )}
+                        {weaverChallan.igst &&
+                          weaverChallan.igst !== "Not Applicable" && (
+                            <div>
+                              <p className="text-gray-600">
+                                IGST ({weaverChallan.igst}):
+                              </p>
+                              <p className="font-medium text-green-600">
+                                ₹
+                                {(
+                                  (weaverChallan.vendor_amount || 0) *
+                                  (parseFloat(
+                                    weaverChallan.igst.replace("%", ""),
+                                  ) /
+                                    100)
+                                ).toFixed(2)}
+                              </p>
+                            </div>
+                          )}
                       </div>
                       <div className="mt-3 pt-3 border-t border-blue-300">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-800">Total Amount (After GST):</span>
+                          <span className="font-semibold text-gray-800">
+                            Total Amount (After GST):
+                          </span>
                           <span className="font-bold text-lg text-blue-700">
-                            ₹{(
+                            ₹
+                            {(
                               (weaverChallan.vendor_amount || 0) +
-                              (weaverChallan.sgst && weaverChallan.sgst !== 'Not Applicable' 
-                                ? (weaverChallan.vendor_amount || 0) * (parseFloat(weaverChallan.sgst.replace('%', '')) / 100) 
+                              (weaverChallan.sgst &&
+                              weaverChallan.sgst !== "Not Applicable"
+                                ? (weaverChallan.vendor_amount || 0) *
+                                  (parseFloat(
+                                    weaverChallan.sgst.replace("%", ""),
+                                  ) /
+                                    100)
                                 : 0) +
-                              (weaverChallan.cgst && weaverChallan.cgst !== 'Not Applicable' 
-                                ? (weaverChallan.vendor_amount || 0) * (parseFloat(weaverChallan.cgst.replace('%', '')) / 100) 
+                              (weaverChallan.cgst &&
+                              weaverChallan.cgst !== "Not Applicable"
+                                ? (weaverChallan.vendor_amount || 0) *
+                                  (parseFloat(
+                                    weaverChallan.cgst.replace("%", ""),
+                                  ) /
+                                    100)
                                 : 0) +
-                              (weaverChallan.igst && weaverChallan.igst !== 'Not Applicable' 
-                                ? (weaverChallan.vendor_amount || 0) * (parseFloat(weaverChallan.igst.replace('%', '')) / 100) 
+                              (weaverChallan.igst &&
+                              weaverChallan.igst !== "Not Applicable"
+                                ? (weaverChallan.vendor_amount || 0) *
+                                  (parseFloat(
+                                    weaverChallan.igst.replace("%", ""),
+                                  ) /
+                                    100)
                                 : 0)
                             ).toFixed(2)}
                           </span>
@@ -357,36 +494,62 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
                 <Package className="h-5 w-5 mr-2" />
                 Production Specifications
               </CardTitle>
-              <CardDescription>Technical details and measurements</CardDescription>
+              <CardDescription>
+                Technical details and measurements
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Rate per mtr</label>
-                  <p className="text-lg font-semibold">₹ {weaverChallan.total_grey_mtr} </p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Rate per mtr
+                  </label>
+                  <p className="text-lg font-semibold">
+                    ₹ {weaverChallan.total_grey_mtr}{" "}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Fold (CM)</label>
-                  <p className="text-lg">{weaverChallan.fold_cm || 'Not specified'} cm</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Fold (CM)
+                  </label>
+                  <p className="text-lg">
+                    {weaverChallan.fold_cm || "Not specified"} cm
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Width (Inches)</label>
-                  <p className="text-lg">{weaverChallan.width_inch || 'Not specified'} inches</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Width (Inches)
+                  </label>
+                  <p className="text-lg">
+                    {weaverChallan.width_inch || "Not specified"} inches
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Taka Count</label>
-                  <p className="text-lg font-semibold">{weaverChallan.taka} taka</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Taka Count
+                  </label>
+                  <p className="text-lg font-semibold">
+                    {weaverChallan.taka} taka
+                  </p>
                 </div>
                 {qualityDetails.length > 0 && qualityDetails[0] && (
                   <>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Quantity (Mtr)</label>
+                      <label className="text-sm font-medium text-gray-700">
+                        Quantity (Mtr)
+                      </label>
 
-                      <p className="text-lg font-semibold">{qualityDetails[0].rate}</p>
+                      <p className="text-lg font-semibold">
+                        {qualityDetails[0].rate}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Quality Name</label>
-                      <p className="text-lg font-semibold">{qualityDetails[0].quality_name}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        Quality Name
+                      </label>
+                      <p className="text-lg font-semibold">
+                        {qualityDetails[0].quality_name}
+                      </p>
                     </div>
                   </>
                 )}
@@ -394,7 +557,7 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
             </CardContent>
           </Card>
 
-         {/* Metadata */}
+          {/* Metadata */}
           <Card>
             <CardHeader>
               <CardTitle>Record Information</CardTitle>
@@ -402,51 +565,79 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Created At</label>
-                  <p className="text-gray-900">{formatDate(weaverChallan.created_at)}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Created At
+                  </label>
+                  <p className="text-gray-900">
+                    {formatDate(weaverChallan.created_at)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Last Updated</label>
-                  <p className="text-gray-900">{formatDate(weaverChallan.updated_at)}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Last Updated
+                  </label>
+                  <p className="text-gray-900">
+                    {formatDate(weaverChallan.updated_at)}
+                  </p>
                 </div>
               </div>
               {weaverChallan.edit_logs && (
                 <div className="mt-4">
-                  <label className="text-sm font-medium text-gray-700">Edit History</label>
-                  <p className="text-sm text-gray-600 mt-1">{weaverChallan.edit_logs}</p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Edit History
+                  </label>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {weaverChallan.edit_logs}
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Transport Details */}
-          {(weaverChallan.transport_name || weaverChallan.lr_number || weaverChallan.transport_charge) && (
+          {(weaverChallan.transport_name ||
+            weaverChallan.lr_number ||
+            weaverChallan.transport_charge) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Truck className="h-5 w-5 mr-2" />
                   Transport Details
                 </CardTitle>
-                <CardDescription>Logistics and transport information</CardDescription>
+                <CardDescription>
+                  Logistics and transport information
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {weaverChallan.transport_name && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Transport Company</label>
-                      <p className="text-gray-900">{weaverChallan.transport_name}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        Transport Company
+                      </label>
+                      <p className="text-gray-900">
+                        {weaverChallan.transport_name}
+                      </p>
                     </div>
                   )}
                   {weaverChallan.lr_number && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">LR Number</label>
-                      <p className="font-mono text-sm">{weaverChallan.lr_number}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        LR Number
+                      </label>
+                      <p className="font-mono text-sm">
+                        {weaverChallan.lr_number}
+                      </p>
                     </div>
                   )}
                   {weaverChallan.transport_charge && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Transport Charge</label>
-                      <p className="text-lg font-semibold">₹{weaverChallan.transport_charge.toLocaleString()}</p>
+                      <label className="text-sm font-medium text-gray-700">
+                        Transport Charge
+                      </label>
+                      <p className="text-lg font-semibold">
+                        ₹{weaverChallan.transport_charge.toLocaleString()}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -454,9 +645,7 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
             </Card>
           )}
 
-         
-
-  {/* Taka Details */}
+          {/* Taka Details */}
           {takaDetails.length > 0 && (
             <Card>
               <CardHeader>
@@ -473,22 +662,25 @@ export default async function WeaverChallanDetailPage({ params }: WeaverChallanD
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {takaDetails.map((taka: { taka_number: string; meters: number }, index: number) => (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{taka.taka_number}</TableCell>
-                        <TableCell>{taka.meters}</TableCell>
-                      </TableRow>
-                    ))}
+                    {takaDetails.map(
+                      (
+                        taka: { taka_number: string; meters: number },
+                        index: number,
+                      ) => (
+                        <TableRow key={index}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{taka.taka_number}</TableCell>
+                          <TableCell>{taka.meters}</TableCell>
+                        </TableRow>
+                      ),
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           )}
-
-
         </div>
       </div>
     </div>
-  )
+  );
 }

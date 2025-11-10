@@ -10,6 +10,7 @@ To enable the enhanced batch history feature with quality names in shorting entr
 ## Method 1: Using Supabase CLI
 
 1. Navigate to your project directory:
+
    ```bash
    cd oms-nextjs
    ```
@@ -24,6 +25,7 @@ To enable the enhanced batch history feature with quality names in shorting entr
 1. Open your Supabase dashboard
 2. Navigate to the SQL Editor
 3. Copy and paste the contents of `migrations/update_batch_history_function_v5.sql`:
+
    ```sql
    -- Update batch history function to include quality_name as type in shorting entries
    CREATE OR REPLACE FUNCTION get_batch_history(batch_no TEXT)

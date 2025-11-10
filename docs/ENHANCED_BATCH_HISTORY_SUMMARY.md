@@ -1,16 +1,19 @@
 # Enhanced Batch History Feature - Production Statistics
 
 ## Overview
+
 This enhancement improves the batch history feature to include comprehensive production statistics, particularly for stitching operations. The update provides detailed insights into how raw materials are utilized in the production process.
 
 ## Key Enhancements
 
 ### 1. Database Function Enhancement
+
 - Updated the `get_batch_history` database function to include detailed stitching challan information
 - Added fields for top/bottom quantities and piece counts
 - Included both regular and "both" selected stitching data
 
 ### 2. TypeScript Types Update
+
 - Extended `IsteachingChallanHistory` interface with new fields:
   - `top_qty`: Top section quantity in meters
   - `top_pcs_qty`: Top section quantity in pieces
@@ -21,6 +24,7 @@ This enhancement improves the batch history feature to include comprehensive pro
   - `both_bottom_qty`: Quantity for bottom section when both selected
 
 ### 3. UI/UX Improvements
+
 - Added new summary cards for stitching statistics:
   - Total Top Quantity (meters and pieces)
   - Total Bottom Quantity (meters and pieces)
@@ -32,12 +36,13 @@ This enhancement improves the batch history feature to include comprehensive pro
   - Support for both regular and "both selected" stitching data
 
 ### 4. Calculations Added
+
 - Total Top Quantity: Sum of all top section meters (including both selected)
 - Total Bottom Quantity: Sum of all bottom section meters (including both selected)
 - Total Top Pieces: Sum of all top section piece counts
 - Total Bottom Pieces: Sum of all bottom section piece counts
 - Average per Challan: Total stitching quantity divided by number of challans
-- Utilization Rate: (Total stitching quantity / Initial weaver challan quantity) * 100
+- Utilization Rate: (Total stitching quantity / Initial weaver challan quantity) \* 100
 
 ## Benefits
 
@@ -64,9 +69,11 @@ This enhancement improves the batch history feature to include comprehensive pro
 ## Files Modified
 
 ### Database
+
 - `migrations/update_batch_history_function_v5.sql` - Enhanced database function
 
 ### Frontend
+
 - `src/types/batch-history.ts` - Updated TypeScript interfaces
 - `src/components/production/batch-history.tsx` - Enhanced UI with new statistics and tables
 

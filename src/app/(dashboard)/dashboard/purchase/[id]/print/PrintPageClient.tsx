@@ -1,36 +1,50 @@
-"use client"
+"use client";
 
-import { formatDate } from '@/lib/utils'
-import { Tables, Json } from '@/types/database'
+import { formatDate } from "@/lib/utils";
+import { Tables, Json } from "@/types/database";
 
-type PurchaseOrder = Tables<'purchase_orders'> & {
-  ledgers: Tables<'ledgers'> | null
-}
+type PurchaseOrder = Tables<"purchase_orders"> & {
+  ledgers: Tables<"ledgers"> | null;
+};
 
-export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: PurchaseOrder }) {
+export default function PrintPageClient({
+  purchaseOrder,
+}: {
+  purchaseOrder: PurchaseOrder;
+}) {
   const parseItems = (items: Json | null) => {
-    if (!items) return []
+    if (!items) return [];
     try {
-      return typeof items === 'string' ? JSON.parse(items) : items
+      return typeof items === "string" ? JSON.parse(items) : items;
     } catch {
-      return []
+      return [];
     }
-  }
+  };
 
-  const items = parseItems(purchaseOrder.items)
+  const items = parseItems(purchaseOrder.items);
 
   return (
     <div className="min-h-screen bg-white p-8 print:p-0">
       {/* Print Styles */}
       <style jsx>{`
         @media print {
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          body { background: white !important; }
-          * { -webkit-print-color-adjust: exact !important; }
+          .no-print {
+            display: none !important;
+          }
+          .print-only {
+            display: block !important;
+          }
+          body {
+            background: white !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+          }
         }
         @media screen {
-          .print-only { display: none !important; }
+          .print-only {
+            display: none !important;
+          }
         }
       `}</style>
 
@@ -56,14 +70,18 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
         <div className="border-b-2 border-gray-900 pb-6 mb-6">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">PURCHASE ORDER</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                PURCHASE ORDER
+              </h1>
               <div className="mt-2">
                 <p className="text-lg font-semibold">Bhaktinandan</p>
                 <p className="text-sm text-gray-600">Textile Manufacturing</p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">{purchaseOrder.po_number}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {purchaseOrder.po_number}
+              </div>
               <div className="text-sm text-gray-600 mt-1">
                 Date: {formatDate(purchaseOrder.po_date)}
               </div>
@@ -79,7 +97,9 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
         {/* Supplier Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-gray-900">Supplier Information</h2>
+            <h2 className="text-lg font-semibold mb-3 text-gray-900">
+              Supplier Information
+            </h2>
             <div className="space-y-1">
               <p className="font-semibold">{purchaseOrder.supplier_name}</p>
               {purchaseOrder.ledgers && (
@@ -103,8 +123,12 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
                         purchaseOrder.ledgers.city,
                         purchaseOrder.ledgers.district,
                         purchaseOrder.ledgers.state,
-                      ].filter(Boolean).join(', ')}
-                      {purchaseOrder.ledgers.zip_code ? ` - ${purchaseOrder.ledgers.zip_code}` : ''}
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
+                      {purchaseOrder.ledgers.zip_code
+                        ? ` - ${purchaseOrder.ledgers.zip_code}`
+                        : ""}
                     </p>
                   )}
                   {purchaseOrder.ledgers.gst_number && (
@@ -116,11 +140,24 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-gray-900">Order Details</h2>
+            <h2 className="text-lg font-semibold mb-3 text-gray-900">
+              Order Details
+            </h2>
             <div className="space-y-1">
-              <p><span className="font-medium">Status:</span> {purchaseOrder.status}</p>
-              <p><span className="font-medium">Total Amount:</span> ₹{purchaseOrder.total_amount.toLocaleString()}</p>
-              <p><span className="font-medium">Created:</span> {purchaseOrder.created_at ? formatDate(purchaseOrder.created_at) : 'N/A'}</p>
+              <p>
+                <span className="font-medium">Status:</span>{" "}
+                {purchaseOrder.status}
+              </p>
+              <p>
+                <span className="font-medium">Total Amount:</span> ₹
+                {purchaseOrder.total_amount.toLocaleString()}
+              </p>
+              <p>
+                <span className="font-medium">Created:</span>{" "}
+                {purchaseOrder.created_at
+                  ? formatDate(purchaseOrder.created_at)
+                  : "N/A"}
+              </p>
             </div>
           </div>
         </div>
@@ -131,29 +168,67 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
           <table className="w-full border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-50">
-                <th className="border border-gray-300 px-4 py-2 text-left">#</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Item Name</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
-                <th className="border border-gray-300 px-4 py-2 text-right">Qty</th>
-                <th className="border border-gray-300 px-4 py-2 text-right">Unit Price</th>
-                <th className="border border-gray-300 px-4 py-2 text-right">Total</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">
+                  #
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left">
+                  Item Name
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left">
+                  Description
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-right">
+                  Qty
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-right">
+                  Unit Price
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-right">
+                  Total
+                </th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item: { item_name: string; description: string; quantity: number; unit_price: number; total_price: number }, index: number) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                  <td className="border border-gray-300 px-4 py-2 font-medium">{item.item_name}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">{item.description || '-'}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-right">{item.quantity}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-right">₹{item.unit_price.toLocaleString()}</td>
-                  <td className="border border-gray-300 px-4 py-2 text-right font-semibold">₹{item.total_price.toLocaleString()}</td>
-                </tr>
-              ))}
+              {items.map(
+                (
+                  item: {
+                    item_name: string;
+                    description: string;
+                    quantity: number;
+                    unit_price: number;
+                    total_price: number;
+                  },
+                  index: number,
+                ) => (
+                  <tr key={index}>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {index + 1}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 font-medium">
+                      {item.item_name}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-sm">
+                      {item.description || "-"}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-right">
+                      {item.quantity}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-right">
+                      ₹{item.unit_price.toLocaleString()}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-right font-semibold">
+                      ₹{item.total_price.toLocaleString()}
+                    </td>
+                  </tr>
+                ),
+              )}
             </tbody>
             <tfoot>
               <tr className="bg-gray-50">
-                <td colSpan={5} className="border border-gray-300 px-4 py-3 text-right font-bold">
+                <td
+                  colSpan={5}
+                  className="border border-gray-300 px-4 py-3 text-right font-bold"
+                >
                   Grand Total:
                 </td>
                 <td className="border border-gray-300 px-4 py-3 text-right font-bold text-lg">
@@ -169,14 +244,22 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
           <div className="mb-8">
             {purchaseOrder.description && (
               <div className="mb-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Description:</h3>
-                <p className="text-sm text-gray-700">{purchaseOrder.description}</p>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Description:
+                </h3>
+                <p className="text-sm text-gray-700">
+                  {purchaseOrder.description}
+                </p>
               </div>
             )}
             {purchaseOrder.terms_conditions && (
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Terms & Conditions:</h3>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{purchaseOrder.terms_conditions}</p>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Terms & Conditions:
+                </h3>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {purchaseOrder.terms_conditions}
+                </p>
               </div>
             )}
           </div>
@@ -186,12 +269,16 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
         <div className="border-t pt-6 mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Supplier Signature</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Supplier Signature
+              </h3>
               <div className="border-b border-gray-400 h-16 mb-2"></div>
               <p className="text-sm text-gray-600">Date: _______________</p>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Authorized Signature</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Authorized Signature
+              </h3>
               <div className="border-b border-gray-400 h-16 mb-2"></div>
               <p className="text-sm text-gray-600">Bhaktinandan</p>
             </div>
@@ -204,5 +291,5 @@ export default function PrintPageClient({ purchaseOrder }: { purchaseOrder: Purc
         </div>
       </div>
     </div>
-  )
+  );
 }

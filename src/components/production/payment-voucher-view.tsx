@@ -1,81 +1,92 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Calendar, 
-  IndianRupee, 
-  User, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  FileText, 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  IndianRupee,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  FileText,
   CreditCard,
   Edit,
-  History
-} from 'lucide-react'
-import { Database } from '@/types/database'
-import { formatDate, formatCurrency } from '@/lib/utils'
-import Image from 'next/image'
+  History,
+} from "lucide-react";
+import { Database } from "@/types/database";
+import { formatDate, formatCurrency } from "@/lib/utils";
+import Image from "next/image";
 
-type PaymentVoucher = Database['public']['Tables']['payment_vouchers']['Row'] & {
-  ledgers?: {
-    business_name: string;
-    business_logo: string | null;
-    contact_person_name: string | null;
-    mobile_number: string | null;
-    email: string | null;
-    address: string | null;
-    city: string | null;
-    state: string | null;
-    country: string | null;
-    zip_code: string | null;
-    gst_number: string | null;
-  } | null;
-  creator?: {
-    first_name: string | null;
-    last_name: string | null;
-  } | null;
-};
+type PaymentVoucher =
+  Database["public"]["Tables"]["payment_vouchers"]["Row"] & {
+    ledgers?: {
+      business_name: string;
+      business_logo: string | null;
+      contact_person_name: string | null;
+      mobile_number: string | null;
+      email: string | null;
+      address: string | null;
+      city: string | null;
+      state: string | null;
+      country: string | null;
+      zip_code: string | null;
+      gst_number: string | null;
+    } | null;
+    creator?: {
+      first_name: string | null;
+      last_name: string | null;
+    } | null;
+  };
 
-type UserRole = Database['public']['Tables']['profiles']['Row']['user_role']
+type UserRole = Database["public"]["Tables"]["profiles"]["Row"]["user_role"];
 
 interface PaymentVoucherViewProps {
-  paymentVoucher: PaymentVoucher
-  userRole: UserRole
-  userId: string
+  paymentVoucher: PaymentVoucher;
+  userRole: UserRole;
+  userId: string;
 }
 
-export function PaymentVoucherView({ 
-  paymentVoucher, 
-  userRole, 
-  userId 
+export function PaymentVoucherView({
+  paymentVoucher,
+  userRole,
+  userId,
 }: PaymentVoucherViewProps) {
-  const router = useRouter()
-  const canEdit = userRole === 'Admin' || userRole === 'Manager'
-  
+  const router = useRouter();
+  const canEdit = userRole === "Admin" || userRole === "Manager";
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Payment Voucher</h1>
-          <p className="text-gray-600 mt-1">
-            Payment voucher details
-          </p>
+          <p className="text-gray-600 mt-1">Payment voucher details</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={() => router.push('/dashboard/production/payment-voucher')}
+          <Button
+            variant="outline"
+            onClick={() => router.push("/dashboard/production/payment-voucher")}
           >
             Back to List
           </Button>
           {canEdit && (
-            <Button onClick={() => router.push(`/dashboard/production/payment-voucher/${paymentVoucher.id}/edit`)}>
+            <Button
+              onClick={() =>
+                router.push(
+                  `/dashboard/production/payment-voucher/${paymentVoucher.id}/edit`,
+                )
+              }
+            >
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -89,9 +100,7 @@ export function PaymentVoucherView({
           <Card>
             <CardHeader>
               <CardTitle>Payment Details</CardTitle>
-              <CardDescription>
-                Payment voucher information
-              </CardDescription>
+              <CardDescription>Payment voucher information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -99,25 +108,27 @@ export function PaymentVoucherView({
                   <div className="text-sm text-gray-500">Date</div>
                   <div className="flex items-center mt-1">
                     <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                    <span>{new Date(paymentVoucher.date).toLocaleDateString()}</span>
+                    <span>
+                      {new Date(paymentVoucher.date).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="text-sm text-gray-500">Payment Type</div>
                   <div className="mt-1">
-                    <Badge 
+                    <Badge
                       className={
-                        paymentVoucher.payment_type === 'Credit' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                        paymentVoucher.payment_type === "Credit"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
                       }
                     >
                       {paymentVoucher.payment_type}
                     </Badge>
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="text-sm text-gray-500">Amount</div>
                   <div className="flex items-center mt-1 text-lg font-semibold">
@@ -125,7 +136,7 @@ export function PaymentVoucherView({
                     {paymentVoucher.amount.toFixed(2)}
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="text-sm text-gray-500">Created At</div>
                   <div className="mt-1">
@@ -133,7 +144,7 @@ export function PaymentVoucherView({
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <div className="text-sm text-gray-500">Payment For</div>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md">
@@ -147,9 +158,7 @@ export function PaymentVoucherView({
           <Card>
             <CardHeader>
               <CardTitle>Ledger Information</CardTitle>
-              <CardDescription>
-                Business partner details
-              </CardDescription>
+              <CardDescription>Business partner details</CardDescription>
             </CardHeader>
             <CardContent>
               {paymentVoucher.ledgers ? (
@@ -172,7 +181,9 @@ export function PaymentVoucherView({
                       )}
                     </div>
                     <div>
-                      <div className="font-semibold text-lg">{paymentVoucher.ledgers.business_name}</div>
+                      <div className="font-semibold text-lg">
+                        {paymentVoucher.ledgers.business_name}
+                      </div>
                       {paymentVoucher.ledgers.contact_person_name && (
                         <div className="flex items-center text-sm text-gray-600 mt-1">
                           <User className="h-4 w-4 mr-1" />
@@ -181,7 +192,7 @@ export function PaymentVoucherView({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     {paymentVoucher.ledgers.mobile_number && (
                       <div>
@@ -192,7 +203,7 @@ export function PaymentVoucherView({
                         </div>
                       </div>
                     )}
-                    
+
                     {paymentVoucher.ledgers.email && (
                       <div>
                         <div className="text-sm text-gray-500">Email</div>
@@ -202,20 +213,26 @@ export function PaymentVoucherView({
                         </div>
                       </div>
                     )}
-                    
-                    {(paymentVoucher.ledgers.address || paymentVoucher.ledgers.city || paymentVoucher.ledgers.state) && (
+
+                    {(paymentVoucher.ledgers.address ||
+                      paymentVoucher.ledgers.city ||
+                      paymentVoucher.ledgers.state) && (
                       <div>
                         <div className="text-sm text-gray-500">Address</div>
                         <div className="flex items-start mt-1">
                           <MapPin className="h-4 w-4 mr-2 text-gray-500 mt-0.5" />
                           <div>
-                            {paymentVoucher.ledgers.address ?
+                            {paymentVoucher.ledgers.address ? (
                               <div>{paymentVoucher.ledgers.address}</div>
-                            : null}
+                            ) : null}
                             <div>
-                              {[paymentVoucher.ledgers.city, paymentVoucher.ledgers.state, paymentVoucher.ledgers.zip_code]
+                              {[
+                                paymentVoucher.ledgers.city,
+                                paymentVoucher.ledgers.state,
+                                paymentVoucher.ledgers.zip_code,
+                              ]
                                 .filter(Boolean)
-                                .join(', ')}
+                                .join(", ")}
                             </div>
                             {paymentVoucher.ledgers.country && (
                               <div>{paymentVoucher.ledgers.country}</div>
@@ -224,7 +241,7 @@ export function PaymentVoucherView({
                         </div>
                       </div>
                     )}
-                    
+
                     {paymentVoucher.ledgers.gst_number && (
                       <div>
                         <div className="text-sm text-gray-500">GST Number</div>
@@ -237,7 +254,9 @@ export function PaymentVoucherView({
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-500">No ledger information available</div>
+                <div className="text-gray-500">
+                  No ledger information available
+                </div>
               )}
             </CardContent>
           </Card>
@@ -257,7 +276,8 @@ export function PaymentVoucherView({
                 </div>
                 <div>
                   <div className="font-medium">
-                    {paymentVoucher.creator?.first_name} {paymentVoucher.creator?.last_name}
+                    {paymentVoucher.creator?.first_name}{" "}
+                    {paymentVoucher.creator?.last_name}
                   </div>
                   <div className="text-sm text-gray-500">Creator</div>
                 </div>
@@ -271,10 +291,14 @@ export function PaymentVoucherView({
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full"
-                onClick={() => router.push(`/dashboard/production/payment-voucher/${paymentVoucher.id}/logs`)}
+                onClick={() =>
+                  router.push(
+                    `/dashboard/production/payment-voucher/${paymentVoucher.id}/logs`,
+                  )
+                }
               >
                 <History className="h-4 w-4 mr-2" />
                 View Change Logs
@@ -290,7 +314,9 @@ export function PaymentVoucherView({
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Payment Type</span>
-                <span className="font-medium">{paymentVoucher.payment_type}</span>
+                <span className="font-medium">
+                  {paymentVoucher.payment_type}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Amount</span>
@@ -310,5 +336,5 @@ export function PaymentVoucherView({
         </div>
       </div>
     </div>
-  )
+  );
 }

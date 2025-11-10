@@ -1,101 +1,150 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/lib/supabase/client";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+function validateEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function passwordStrength(password: string): boolean {
+  return (
+    password.length >= 6 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password)
+  );
+}
 
 export default function SignupPage() {
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState('')
-  const [agreed, setAgreed] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  
-  const router = useRouter()
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setSuccess('')
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
     // Validation
-    if (!firstName || !lastName || !email || !password || !confirmPassword || !role) {
-      setError('Please fill in all fields.')
-      return
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !role
+    ) {
+      setError("Please fill in all fields.");
+      return;
     }
-
+    if (!validateEmail(email)) {
+      setError("Invalid email format.");
+      return;
+    }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
+      setError("Passwords do not match.");
+      return;
     }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.')
-      return
+    if (!passwordStrength(password)) {
+      setError(
+        "Password must have at least 6 characters, uppercase, lowercase, and number.",
+      );
+      return;
     }
-
     if (!agreed) {
-      setError('Please agree to the Privacy Policy.')
-      return
+      setError("Please agree to the Privacy Policy.");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      // Sign up with Supabase Auth
+      // 1. Sign up user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            user_role: role
-          }
-        }
-      })
+      });
 
       if (authError) {
-        setError(authError.message)
-        return
+        setError(authError.message);
+        return;
+      }
+      if (!authData?.user?.id) {
+        setError("Signup failed: Could not retrieve user ID.");
+        return;
       }
 
-      if (!authData.user) {
-        setError('Signup failed. Please try again.')
-        return
+      // 2. Upsert user profile using the JUST created user's ID
+      const full_name = `${firstName} ${lastName}`.trim();
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          id: authData.user.id, // guaranteed to exist in auth.users
+          email,
+          username: email.split("@")[0],
+          full_name,
+          user_role: role,
+          onboarding_completed: true,
+          // Add other NOT NULL columns here as needed
+        },
+        { onConflict: "id" },
+      );
+
+      if (profileError) {
+        console.error("Profile Error Details:", profileError);
+        setError(profileError.message || "Unknown error");
+        return;
       }
 
-      // Check if email confirmation is required
+      // 3. Email confirmation and redirect
       if (!authData.session) {
-        setSuccess('Please check your email to confirm your account before logging in.')
+        setSuccess(
+          "Please check your email to confirm your account before logging in.",
+        );
       } else {
-        setSuccess('Account created successfully! Redirecting to login...')
+        setSuccess("Account created successfully! Redirecting to dashboard...");
         setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+          router.push("/dashboard");
+        }, 2000);
       }
-
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
-      console.error('Signup error:', err)
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Signup error:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -106,25 +155,29 @@ export default function SignupPage() {
               Bhaktinandan
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Create your account
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your details to create a new OMS account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form
+            onSubmit={handleSignup}
+            className="space-y-4"
+            aria-live="assertive"
+          >
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
             {success && (
               <Alert className="border-green-200 bg-green-50 text-green-800">
                 <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
@@ -135,6 +188,7 @@ export default function SignupPage() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
+                  autoComplete="given-name"
                 />
               </div>
               <div className="space-y-2">
@@ -146,10 +200,10 @@ export default function SignupPage() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required
+                  autoComplete="family-name"
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -159,9 +213,9 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="role">Select Role</Label>
               <Select value={role} onValueChange={setRole} required>
@@ -175,7 +229,6 @@ export default function SignupPage() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -185,9 +238,9 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="new-password"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -197,9 +250,9 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                autoComplete="new-password"
               />
             </div>
-
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="terms"
@@ -207,42 +260,35 @@ export default function SignupPage() {
                 onCheckedChange={(checked) => setAgreed(checked as boolean)}
               />
               <Label htmlFor="terms" className="text-sm">
-                I agree to the{' '}
+                I agree to the{" "}
                 <Link href="#" className="text-blue-600 hover:underline">
                   Privacy Policy
                 </Link>
                 .
               </Label>
             </div>
-
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating Account...
                 </>
               ) : (
-                'Create Account'
+                "Create Account"
               )}
             </Button>
-
             <div className="text-center text-sm">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link href="/login" className="text-blue-600 hover:underline">
                 Sign in here
               </Link>
             </div>
           </form>
-
           <div className="mt-6 text-center text-xs text-gray-500">
             Made with ❤️ Vitacoders
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

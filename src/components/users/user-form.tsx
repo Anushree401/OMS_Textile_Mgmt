@@ -1,31 +1,43 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Upload, X, User, Shield } from 'lucide-react'
-import { Database } from '@/types/database'
-import Image from 'next/image'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Upload, X, User, Shield } from "lucide-react";
+import { Database } from "@/types/database";
+import Image from "next/image";
 
-type Profile = Database['public']['Tables']['profiles']['Insert']
+type Profile = Database["public"]["Tables"]["profiles"]["Insert"];
 
 const userSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  first_name: z.string().min(1, 'First name is required'),
-  last_name: z.string().min(1, 'Last name is required'),
-  user_role: z.enum(['Admin', 'Manager', 'User']),
-  user_status: z.enum(['Active', 'Inactive']),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  user_role: z.enum(["Admin", "Manager", "User"]),
+  user_status: z.enum(["Active", "Inactive"]),
   mobile: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -34,25 +46,30 @@ const userSchema = z.object({
   document_type: z.string().optional(),
   document_number: z.string().optional(),
   dob: z.string().optional(),
-})
+});
 
-type UserFormData = z.infer<typeof userSchema>
+type UserFormData = z.infer<typeof userSchema>;
 
 interface UserFormProps {
-  user?: Database['public']['Tables']['profiles']['Row']
-  isEdit?: boolean
-  isOwnProfile?: boolean
-  currentUserRole?: string
+  user?: Database["public"]["Tables"]["profiles"]["Row"];
+  isEdit?: boolean;
+  isOwnProfile?: boolean;
+  currentUserRole?: string;
 }
 
-export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUserRole }: UserFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
+export function UserForm({
+  user,
+  isEdit = false,
+  isOwnProfile = false,
+  currentUserRole,
+}: UserFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(
-    user?.profile_photo || null
-  )
+    user?.profile_photo || null,
+  );
 
   const {
     register,
@@ -63,84 +80,84 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      email: user?.email || '',
-      password: '',
-      first_name: user?.first_name || '',
-      last_name: user?.last_name || '',
-      user_role: (user?.user_role as 'Admin' | 'Manager' | 'User') || 'User',
-      user_status: (user?.user_status as 'Active' | 'Inactive') || 'Active',
-      mobile: user?.mobile || '',
-      address: user?.address || '',
-      city: user?.city || '',
-      state: user?.state || '',
-      country: user?.country || 'India',
-      document_type: user?.document_type || '',
-      document_number: user?.document_number || '',
-      dob: user?.dob || '',
+      email: user?.email || "",
+      password: "",
+      first_name: user?.first_name || "",
+      last_name: user?.last_name || "",
+      user_role: (user?.user_role as "Admin" | "Manager" | "User") || "User",
+      user_status: (user?.user_status as "Active" | "Inactive") || "Active",
+      mobile: user?.mobile || "",
+      address: user?.address || "",
+      city: user?.city || "",
+      state: user?.state || "",
+      country: user?.country || "India",
+      document_type: user?.document_type || "",
+      document_number: user?.document_number || "",
+      dob: user?.dob || "",
     },
-  })
+  });
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      if (file.type.startsWith('image/')) {
-        setPhotoFile(file)
-        const reader = new FileReader()
+      if (file.type.startsWith("image/")) {
+        setPhotoFile(file);
+        const reader = new FileReader();
         reader.onload = (e) => {
-          setPhotoPreview(e.target?.result as string)
-        }
-        reader.readAsDataURL(file)
+          setPhotoPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
       } else {
-        setError('Please select a valid image file')
+        setError("Please select a valid image file");
       }
     }
-  }
+  };
 
   const removePhoto = () => {
-    setPhotoFile(null)
-    setPhotoPreview(null)
-  }
+    setPhotoFile(null);
+    setPhotoPreview(null);
+  };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-      const filePath = `profiles/${fileName}`
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `profiles/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-photos')
-        .upload(filePath, file)
+        .from("profile-photos")
+        .upload(filePath, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError)
-        return null
+        console.error("Upload error:", uploadError);
+        return null;
       }
 
       const { data } = supabase.storage
-        .from('profile-photos')
-        .getPublicUrl(filePath)
+        .from("profile-photos")
+        .getPublicUrl(filePath);
 
-      return data.publicUrl
+      return data.publicUrl;
     } catch (error) {
-      console.error('Error uploading photo:', error)
-      return null
+      console.error("Error uploading photo:", error);
+      return null;
     }
-  }
+  };
 
   const onSubmit = async (data: UserFormData) => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
-      let photoUrl = user?.profile_photo || null
+      let photoUrl = user?.profile_photo || null;
 
       // Upload new photo if selected
       if (photoFile) {
-        photoUrl = await uploadPhoto(photoFile)
+        photoUrl = await uploadPhoto(photoFile);
         if (!photoUrl) {
-          setError('Failed to upload profile photo. Please try again.')
-          setLoading(false)
-          return
+          setError("Failed to upload profile photo. Please try again.");
+          setLoading(false);
+          return;
         }
       }
 
@@ -160,38 +177,40 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
           document_type: data.document_type || null,
           document_number: data.document_number || null,
           dob: data.dob || null,
-        }
+        };
 
         const { error: updateError } = await supabase
-          .from('profiles')
+          .from("profiles")
           .update(profileData)
-          .eq('id', user.id)
+          .eq("id", user.id);
 
         if (updateError) {
-          setError('Failed to update user. Please try again.')
-          return
+          setError("Failed to update user. Please try again.");
+          return;
         }
       } else {
         // Create new user account
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
-          options: {
-            data: {
-              first_name: data.first_name,
-              last_name: data.last_name,
-            }
-          }
-        })
+        const { data: authData, error: authError } = await supabase.auth.signUp(
+          {
+            email: data.email,
+            password: data.password,
+            options: {
+              data: {
+                first_name: data.first_name,
+                last_name: data.last_name,
+              },
+            },
+          },
+        );
 
         if (authError) {
-          setError(authError.message)
-          return
+          setError(authError.message);
+          return;
         }
 
         if (!authData.user) {
-          setError('Failed to create user account.')
-          return
+          setError("Failed to create user account.");
+          return;
         }
 
         // Update the profile with additional details
@@ -207,31 +226,33 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
           document_type: data.document_type || null,
           document_number: data.document_number || null,
           dob: data.dob || null,
-        }
+        };
 
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from("profiles")
           .update(profileData)
-          .eq('id', authData.user.id)
+          .eq("id", authData.user.id);
 
         if (profileError) {
-          setError('User created but failed to update profile. Please edit the user to complete setup.')
+          setError(
+            "User created but failed to update profile. Please edit the user to complete setup.",
+          );
         }
       }
 
       if (isEdit && user) {
-        router.push(`/dashboard/users/${user.id}`)
+        router.push(`/dashboard/users/${user.id}`);
       } else {
-        router.push('/dashboard/users/manage')
+        router.push("/dashboard/users/manage");
       }
-      router.refresh()
+      router.refresh();
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
-      console.error('Error saving user:', err)
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Error saving user:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -248,7 +269,9 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
             <User className="h-5 w-5 mr-2" />
             Profile Photo
           </CardTitle>
-          <CardDescription>Upload user profile photo (optional)</CardDescription>
+          <CardDescription>
+            Upload user profile photo (optional)
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -304,7 +327,7 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Input
                 id="email"
                 type="email"
-                {...register('email')}
+                {...register("email")}
                 placeholder="Enter email address"
               />
               {errors.email && (
@@ -317,11 +340,13 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Input
                 id="password"
                 type="password"
-                {...register('password')}
+                {...register("password")}
                 placeholder="Enter password (min 6 characters)"
               />
               {errors.password && (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -340,11 +365,13 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Label htmlFor="first_name">First Name *</Label>
               <Input
                 id="first_name"
-                {...register('first_name')}
+                {...register("first_name")}
                 placeholder="Enter first name"
               />
               {errors.first_name && (
-                <p className="text-sm text-red-600">{errors.first_name.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.first_name.message}
+                </p>
               )}
             </div>
 
@@ -352,11 +379,13 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Label htmlFor="last_name">Last Name *</Label>
               <Input
                 id="last_name"
-                {...register('last_name')}
+                {...register("last_name")}
                 placeholder="Enter last name"
               />
               {errors.last_name && (
-                <p className="text-sm text-red-600">{errors.last_name.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.last_name.message}
+                </p>
               )}
             </div>
           </div>
@@ -366,18 +395,14 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Label htmlFor="mobile">Mobile Number</Label>
               <Input
                 id="mobile"
-                {...register('mobile')}
+                {...register("mobile")}
                 placeholder="Enter mobile number"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="dob">Date of Birth</Label>
-              <Input
-                id="dob"
-                type="date"
-                {...register('dob')}
-              />
+              <Input id="dob" type="date" {...register("dob")} />
             </div>
           </div>
         </CardContent>
@@ -396,7 +421,12 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="user_role">User Role *</Label>
-              <Select value={watch('user_role')} onValueChange={(value) => setValue('user_role', value as 'Admin' | 'Manager' | 'User')}>
+              <Select
+                value={watch("user_role")}
+                onValueChange={(value) =>
+                  setValue("user_role", value as "Admin" | "Manager" | "User")
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -407,13 +437,20 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
                 </SelectContent>
               </Select>
               {errors.user_role && (
-                <p className="text-sm text-red-600">{errors.user_role.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.user_role.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="user_status">Account Status *</Label>
-              <Select value={watch('user_status')} onValueChange={(value) => setValue('user_status', value as 'Active' | 'Inactive')}>
+              <Select
+                value={watch("user_status")}
+                onValueChange={(value) =>
+                  setValue("user_status", value as "Active" | "Inactive")
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -438,7 +475,7 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
             <Label htmlFor="address">Address</Label>
             <Textarea
               id="address"
-              {...register('address')}
+              {...register("address")}
               placeholder="Enter address"
               rows={3}
             />
@@ -447,18 +484,14 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                {...register('city')}
-                placeholder="Enter city"
-              />
+              <Input id="city" {...register("city")} placeholder="Enter city" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
               <Input
                 id="state"
-                {...register('state')}
+                {...register("state")}
                 placeholder="Enter state"
               />
             </div>
@@ -467,7 +500,7 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Label htmlFor="country">Country</Label>
               <Input
                 id="country"
-                {...register('country')}
+                {...register("country")}
                 placeholder="India"
               />
             </div>
@@ -479,13 +512,18 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
       <Card>
         <CardHeader>
           <CardTitle>Document Information</CardTitle>
-          <CardDescription>Identity document details (optional)</CardDescription>
+          <CardDescription>
+            Identity document details (optional)
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="document_type">Document Type</Label>
-              <Select value={watch('document_type')} onValueChange={(value) => setValue('document_type', value)}>
+              <Select
+                value={watch("document_type")}
+                onValueChange={(value) => setValue("document_type", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select document type" />
                 </SelectTrigger>
@@ -493,7 +531,9 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
                   <SelectItem value="Aadhar">Aadhar Card</SelectItem>
                   <SelectItem value="PAN">PAN Card</SelectItem>
                   <SelectItem value="Passport">Passport</SelectItem>
-                  <SelectItem value="DrivingLicense">Driving License</SelectItem>
+                  <SelectItem value="DrivingLicense">
+                    Driving License
+                  </SelectItem>
                   <SelectItem value="VoterID">Voter ID</SelectItem>
                 </SelectContent>
               </Select>
@@ -503,7 +543,7 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
               <Label htmlFor="document_number">Document Number</Label>
               <Input
                 id="document_number"
-                {...register('document_number')}
+                {...register("document_number")}
                 placeholder="Enter document number"
               />
             </div>
@@ -517,10 +557,12 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEdit ? 'Updating...' : 'Creating...'}
+              {isEdit ? "Updating..." : "Creating..."}
             </>
+          ) : isEdit ? (
+            "Update User"
           ) : (
-            isEdit ? 'Update User' : 'Create User'
+            "Create User"
           )}
         </Button>
         <Button
@@ -528,9 +570,9 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
           variant="outline"
           onClick={() => {
             if (isEdit && user) {
-              router.push(`/dashboard/users/${user.id}`)
+              router.push(`/dashboard/users/${user.id}`);
             } else {
-              router.push('/dashboard/users/manage')
+              router.push("/dashboard/users/manage");
             }
           }}
         >
@@ -538,6 +580,5 @@ export function UserForm({ user, isEdit = false, isOwnProfile = false, currentUs
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

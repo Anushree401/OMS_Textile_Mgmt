@@ -1,121 +1,138 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { 
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
   Mail,
   Phone,
   UserCheck,
   UserX,
   Shield,
-  Users as UsersIcon
-} from 'lucide-react'
-import { Database } from '@/types/database'
-import { formatDate } from '@/lib/utils'
+  Users as UsersIcon,
+} from "lucide-react";
+import { Database } from "@/types/database";
+import { formatDate } from "@/lib/utils";
 
-type User = Database['public']['Tables']['profiles']['Row']
+type User = Database["public"]["Tables"]["profiles"]["Row"];
 
 interface UsersContentProps {
-  users: User[]
-  totalCount: number
-  currentUserId: string
+  users: User[];
+  totalCount: number;
+  currentUserId: string;
 }
 
-export function UsersContent({ users, totalCount, currentUserId }: UsersContentProps) {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+export function UsersContent({
+  users,
+  totalCount,
+  currentUserId,
+}: UsersContentProps) {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !searchTerm || 
-      (user.first_name && user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.last_name && user.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      !searchTerm ||
+      (user.first_name &&
+        user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.last_name &&
+        user.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.mobile && user.mobile.includes(searchTerm))
+      (user.mobile && user.mobile.includes(searchTerm));
 
-    return matchesSearch
-  })
+    return matchesSearch;
+  });
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-      return
+    if (
+      !confirm(
+        `Are you sure you want to delete user "${userName}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(userId)
+    setDeletingId(userId);
 
     try {
       // First delete from profiles table
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .delete()
-        .eq('id', userId)
+        .eq("id", userId);
 
       if (profileError) {
-        alert('Failed to delete user profile. Please try again.')
-        return
+        alert("Failed to delete user profile. Please try again.");
+        return;
       }
 
-      // Note: The auth.users record is managed by Supabase and 
+      // Note: The auth.users record is managed by Supabase and
       // typically cannot be deleted via client-side operations
-      // In a production environment, you might want to implement 
+      // In a production environment, you might want to implement
       // a server-side function to handle auth user deletion
 
       // Refresh the page to show updated data
-      router.refresh()
+      router.refresh();
     } catch (err) {
-      console.error('Error deleting user:', err)
-      alert('An unexpected error occurred. Please try again.')
+      console.error("Error deleting user:", err);
+      alert("An unexpected error occurred. Please try again.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   const getRoleBadge = (role: string | null) => {
-    const roleDisplay = role || 'Unassigned'
+    const roleDisplay = role || "Unassigned";
     const roleColors: Record<string, string> = {
-      'Admin': 'bg-red-100 text-red-700',
-      'Manager': 'bg-blue-100 text-blue-700',
-      'User': 'bg-green-100 text-green-700',
-      'Unassigned': 'bg-gray-100 text-gray-700'
-    }
-    
+      Admin: "bg-red-100 text-red-700",
+      Manager: "bg-blue-100 text-blue-700",
+      User: "bg-green-100 text-green-700",
+      Unassigned: "bg-gray-100 text-gray-700",
+    };
+
     return (
       <Badge variant="secondary" className={roleColors[roleDisplay]}>
         <Shield className="h-3 w-3 mr-1" />
         {roleDisplay}
       </Badge>
-    )
-  }
+    );
+  };
 
   const getStatusBadge = (status: string | null) => {
-    const statusDisplay = status || 'Inactive'
-    return statusDisplay === 'Active' ? (
+    const statusDisplay = status || "Inactive";
+    return statusDisplay === "Active" ? (
       <Badge variant="default" className="bg-green-100 text-green-700">
         <UserCheck className="h-3 w-3 mr-1" />
         Active
@@ -125,33 +142,42 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
         <UserX className="h-3 w-3 mr-1" />
         Inactive
       </Badge>
-    )
-  }
+    );
+  };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
-    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || 'U'
-  }
+    return (
+      `${firstName?.charAt(0) || ""}${lastName?.charAt(0) || ""}`.toUpperCase() ||
+      "U"
+    );
+  };
 
   const getRoleCounts = () => {
-    const counts = users.reduce((acc, user) => {
-      const role = user.user_role || 'Unassigned'
-      acc[role] = (acc[role] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    return counts
-  }
+    const counts = users.reduce(
+      (acc, user) => {
+        const role = user.user_role || "Unassigned";
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    return counts;
+  };
 
   const getStatusCounts = () => {
-    const counts = users.reduce((acc, user) => {
-      const status = user.user_status || 'Inactive'
-      acc[status] = (acc[status] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    return counts
-  }
+    const counts = users.reduce(
+      (acc, user) => {
+        const status = user.user_status || "Inactive";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    return counts;
+  };
 
-  const roleCounts = getRoleCounts()
-  const statusCounts = getStatusCounts()
+  const roleCounts = getRoleCounts();
+  const statusCounts = getStatusCounts();
 
   return (
     <div className="space-y-6">
@@ -163,7 +189,7 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
             Manage system users and their permissions ({totalCount} total users)
           </p>
         </div>
-        <Button onClick={() => router.push('/dashboard/users/create')}>
+        <Button onClick={() => router.push("/dashboard/users/create")}>
           <Plus className="h-4 w-4 mr-2" />
           Create User
         </Button>
@@ -176,35 +202,37 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
             <div className="flex items-center">
               <UsersIcon className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900">{totalCount}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {totalCount}
+                </div>
                 <div className="text-sm text-gray-600">Total Users</div>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-red-600">
-              {roleCounts['Admin'] || 0}
+              {roleCounts["Admin"] || 0}
             </div>
             <div className="text-sm text-gray-600">Admins</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-600">
-              {roleCounts['Manager'] || 0}
+              {roleCounts["Manager"] || 0}
             </div>
             <div className="text-sm text-gray-600">Managers</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              {roleCounts['User'] || 0}
+              {roleCounts["User"] || 0}
             </div>
             <div className="text-sm text-gray-600">Users</div>
           </CardContent>
@@ -213,7 +241,7 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-emerald-600">
-              {statusCounts['Active'] || 0}
+              {statusCounts["Active"] || 0}
             </div>
             <div className="text-sm text-gray-600">Active</div>
           </CardContent>
@@ -272,8 +300,8 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage 
-                          src={user.profile_photo || ''} 
+                        <AvatarImage
+                          src={user.profile_photo || ""}
                           alt={`${user.first_name} ${user.last_name}`}
                         />
                         <AvatarFallback>
@@ -329,25 +357,36 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/users/${user.id}`)}
+                          onClick={() =>
+                            router.push(`/dashboard/users/${user.id}`)
+                          }
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View Profile
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
+                          onClick={() =>
+                            router.push(`/dashboard/users/${user.id}/edit`)
+                          }
                         >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit User
                         </DropdownMenuItem>
                         {user.id !== currentUserId && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeleteUser(user.id, `${user.first_name} ${user.last_name}`)}
+                            onClick={() =>
+                              handleDeleteUser(
+                                user.id,
+                                `${user.first_name} ${user.last_name}`,
+                              )
+                            }
                             disabled={deletingId === user.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {deletingId === user.id ? 'Deleting...' : 'Delete User'}
+                            {deletingId === user.id
+                              ? "Deleting..."
+                              : "Delete User"}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -357,7 +396,7 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
               ))}
             </TableBody>
           </Table>
-          
+
           {filteredUsers.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-500">No users found</div>
@@ -369,5 +408,5 @@ export function UsersContent({ users, totalCount, currentUserId }: UsersContentP
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

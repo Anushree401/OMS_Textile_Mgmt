@@ -19,6 +19,7 @@ To enable the full functionality of the batch history feature, you need to apply
 
 1. Connect to your Supabase database
 2. Run the migration script:
+
    ```sql
    -- Update batch history function to include quality_name as type in shorting entries
    -- and more detailed information about stitching challans

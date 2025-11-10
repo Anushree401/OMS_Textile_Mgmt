@@ -1,42 +1,80 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
-import { redirect, notFound } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { formatDate } from '@/lib/utils';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
 interface ViewExpensePageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string }; // Synchronous param per Next.js
 }
 
-export default async function ViewExpensePage({ params }: ViewExpensePageProps) {
-  const supabase = createServerSupabaseClient();
-  const resolvedParams = await params;
-  
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+interface Expense {
+  id: string;
+  expense_date: string;
+  challan_no: string;
+  amount_before_gst?: number | null;
+  cost: number;
+  sgst?: string | null;
+  cgst?: string | null;
+  igst?: string | null;
+  created_at: string;
+  expense_for: string[];
+  other_expense_description?: string | null;
+  ledgers?: { business_name?: string | null };
+  manual_ledgers?: { business_name?: string | null };
+  isteaching_challans?: { batch_number: string[] | string | null };
+  manual_ledger_id?: string | null;
+  created_by?: string;
+}
 
-  const { data: expense, error: expenseError } = await supabase
-    .from('expenses')
-    .select(`
+interface Profile {
+  email: string;
+}
+
+export default async function ViewExpensePage({
+  params,
+}: ViewExpensePageProps) {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: expenseRaw, error: expenseError } = await supabase
+    .from("expenses")
+    .select(
+      `
       *,
       ledgers!expenses_ledger_id_fkey ( business_name ),
       manual_ledgers:ledgers!expenses_manual_ledger_id_fkey ( business_name ),
       isteaching_challans ( batch_number )
-    `)
-    .eq('id', resolvedParams.id)
+    `,
+    )
+    .eq("id", params.id)
     .single();
 
+  const expense = expenseRaw as Expense | null;
   if (expenseError || !expense) notFound();
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('id', expense.created_by)
+  // Make sure to look up profile by user id, not by date!
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", expense.created_at)
     .single();
+
+  const profile = profileData as Profile | null;
 
   return (
     <div className="space-y-6">
@@ -65,50 +103,66 @@ export default async function ViewExpensePage({ params }: ViewExpensePageProps) 
             </div>
             <div>
               <Label>Auto-detected Ledger</Label>
-              <p>{expense.ledgers?.business_name || 'N/A'}</p>
+              <p>{expense.ledgers?.business_name || "N/A"}</p>
             </div>
             <div>
               <Label>Manual Ledger</Label>
-              <p>{expense.manual_ledgers?.business_name || 'N/A'}</p>
+              <p>{expense.manual_ledgers?.business_name || "N/A"}</p>
             </div>
             <div>
               <Label>Effective Ledger</Label>
-              <p>{expense.manual_ledger_id ? expense.manual_ledgers?.business_name : expense.ledgers?.business_name || 'N/A'}</p>
+              <p>
+                {expense.manual_ledger_id
+                  ? expense.manual_ledgers?.business_name
+                  : expense.ledgers?.business_name || "N/A"}
+              </p>
             </div>
             <div>
               <Label>Challan/Batch Number</Label>
-              <p>{expense.challan_no} ({Array.isArray(expense.isteaching_challans?.batch_number) ? expense.isteaching_challans.batch_number.join(', ') : expense.isteaching_challans?.batch_number})</p>
+              <p>
+                {expense.challan_no} (
+                {Array.isArray(expense.isteaching_challans?.batch_number)
+                  ? expense.isteaching_challans.batch_number.join(", ")
+                  : expense.isteaching_challans?.batch_number}
+                )
+              </p>
             </div>
             <div>
               <Label>Amount (Before GST)</Label>
-              <p>₹{expense.amount_before_gst?.toFixed(2) || expense.cost.toFixed(2)}</p>
+              <p>
+                ₹
+                {expense.amount_before_gst?.toFixed(2) ||
+                  expense.cost.toFixed(2)}
+              </p>
             </div>
             <div>
               <Label>GST Details</Label>
               <div className="space-y-1 text-sm">
-                {expense.sgst && expense.sgst !== 'Not Applicable' && (
+                {expense.sgst && expense.sgst !== "Not Applicable" && (
                   <p>SGST: {expense.sgst}</p>
                 )}
-                {expense.cgst && expense.cgst !== 'Not Applicable' && (
+                {expense.cgst && expense.cgst !== "Not Applicable" && (
                   <p>CGST: {expense.cgst}</p>
                 )}
-                {expense.igst && expense.igst !== 'Not Applicable' && (
+                {expense.igst && expense.igst !== "Not Applicable" && (
                   <p>IGST: {expense.igst}</p>
                 )}
-                {(!expense.sgst || expense.sgst === 'Not Applicable') &&
-                 (!expense.cgst || expense.cgst === 'Not Applicable') &&
-                 (!expense.igst || expense.igst === 'Not Applicable') && (
-                  <p>No GST Applied</p>
-                )}
+                {(!expense.sgst || expense.sgst === "Not Applicable") &&
+                  (!expense.cgst || expense.cgst === "Not Applicable") &&
+                  (!expense.igst || expense.igst === "Not Applicable") && (
+                    <p>No GST Applied</p>
+                  )}
               </div>
             </div>
             <div>
               <Label>Total Cost (After GST)</Label>
-              <p className="font-semibold text-lg">₹{expense.cost.toFixed(2)}</p>
+              <p className="font-semibold text-lg">
+                ₹{expense.cost.toFixed(2)}
+              </p>
             </div>
             <div>
               <Label>Entry By</Label>
-              <p>{profile?.email || 'N/A'}</p>
+              <p>{profile?.email || "N/A"}</p>
             </div>
             <div>
               <Label>Entry Date</Label>
@@ -120,7 +174,9 @@ export default async function ViewExpensePage({ params }: ViewExpensePageProps) 
             <div className="flex flex-wrap gap-2 mt-2">
               {expense.expense_for.map((item: string) => (
                 <Badge key={item} variant="secondary">
-                  {item === 'Other' ? expense.other_expense_description || 'Other' : item}
+                  {item === "Other"
+                    ? expense.other_expense_description || "Other"
+                    : item}
                 </Badge>
               ))}
             </div>

@@ -1,8 +1,13 @@
-'use client';
+"use client";
 
-import BatchHistory from '@/components/production/batch-history';
-import { useParams } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import BatchHistory from "@/components/production/batch-history";
+import { useParams } from "next/navigation";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 export default function BatchHistoryPage() {
   const params = useParams();

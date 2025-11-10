@@ -1,56 +1,92 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
-import { LedgerForm } from '@/components/ledger/ledger-form'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { LedgerForm } from "@/components/ledger/ledger-form";
+import { Button } from "@/components/ui/button";
+import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { Database } from "@/types/supabase";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+
+// Types from generated Supabase types
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type LedgerRow = Database["public"]["Tables"]["ledgers"]["Row"];
+
+// Helper: convert all required fields to non-null
+function cleanupLedger(row: LedgerRow) {
+  return {
+    ...row,
+    created_at: row.created_at ?? new Date().toISOString(),
+    pan_number: row.pan_number ?? "", // If your form allows null, leave as is.
+    business_name: row.business_name ?? "",
+    address: row.address ?? "",
+    business_logo: row.business_logo ?? "",
+    city: row.city ?? "",
+    contact_person_name: row.contact_person_name ?? "",
+    country: row.country ?? "",
+    district: row.district ?? "",
+    edit_logs: row.edit_logs ?? "",
+    email: row.email ?? "",
+    gst_number: row.gst_number ?? "",
+    ledger_id: row.ledger_id ?? "",
+    mobile_number: row.mobile_number ?? "",
+    state: row.state ?? "",
+    updated_at: row.updated_at ?? new Date().toISOString(),
+    zip_code: row.zip_code ?? "",
+    // Add any other `string | null` field here, converting to "" or a safe default
+  };
+}
 
 interface LedgerEditPageProps {
-  params: Promise<{ id: string }>
+  params: { id: string };
 }
 
 export default async function LedgerEditPage({ params }: LedgerEditPageProps) {
-  // Await the params
-  const { id } = await params
-  
-  const supabase = createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+  const { id } = params;
+  const supabase = await createServerSupabaseClient();
+
+  // Fetch current user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login");
   }
 
-  // Get user profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  // Fetch profile for user
+  const { data: profileData, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
-  if (!profile) {
-    redirect('/login')
+  const profile = profileData as ProfileRow | null;
+  if (profileError || !profile) {
+    redirect("/login");
   }
 
-  // Check permissions
-  if (profile.user_role !== 'Admin' && profile.user_role !== 'Manager') {
-    redirect('/dashboard/ledger/list')
+  // Only allow Admin or Manager
+  if (profile.user_role !== "Admin" && profile.user_role !== "Manager") {
+    redirect("/dashboard/ledger/list");
   }
 
-  // Fetch ledger details
-  const { data: ledger, error } = await supabase
-    .from('ledgers')
-    .select('*')
-    .eq('ledger_id', id)
-    .single()
+  // Fetch ledger by id
+  const { data: ledgerData, error: ledgerError } = await supabase
+    .from("ledgers")
+    .select("*")
+    .eq("ledger_id", id)
+    .single();
 
-  if (error || !ledger) {
-    notFound()
+  const ledgerRaw = ledgerData as LedgerRow | null;
+  if (ledgerError || !ledgerRaw) {
+    notFound();
   }
+
+  // Safe for LedgerForm: all required string fields are guaranteed to be string
+  const ledger = cleanupLedger(ledgerRaw);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center space-x-4">
         <Link href={`/dashboard/ledger/${ledger.ledger_id}`}>
           <Button variant="ghost" size="sm">
@@ -65,8 +101,7 @@ export default async function LedgerEditPage({ params }: LedgerEditPageProps) {
           </p>
         </div>
       </div>
-
       <LedgerForm userId={user.id} ledger={ledger} isEdit={true} />
     </div>
-  )
+  );
 }

@@ -1,69 +1,121 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm, useFieldArray } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Plus, Trash2 } from 'lucide-react'
-import { Database, Json } from '@/types/database'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Database, Json } from "@/types/database";
 
-type PurchaseOrder = Database['public']['Tables']['purchase_orders']['Row']
-type Ledger = Database['public']['Tables']['ledgers']['Row']
+type PurchaseOrder = Database["public"]["Tables"]["purchase_orders"]["Row"];
+type Ledger = Database["public"]["Tables"]["ledgers"]["Row"];
 
 const purchaseOrderItemSchema = z.object({
-  item_name: z.string().min(1, 'Item name is required'),
+  item_name: z.string().min(1, "Item name is required"),
   description: z.string().optional(),
-  quantity: z.number().min(1, 'Quantity must be at least 1'),
-  unit_price: z.number().min(0.01, 'Unit price must be greater than 0'),
-  total_price: z.number().min(0.01, 'Total price must be greater than 0'),
-})
+  quantity: z.number().min(1, "Quantity must be at least 1"),
+  unit_price: z.number().min(0.01, "Unit price must be greater than 0"),
+  total_price: z.number().min(0.01, "Total price must be greater than 0"),
+});
 
 const purchaseOrderEditSchema = z.object({
-  supplier_name: z.string().min(1, 'Supplier name is required'),
+  supplier_name: z.string().min(1, "Supplier name is required"),
   ledger_id: z.string().optional(),
-  po_date: z.string().min(1, 'PO date is required'),
+  po_date: z.string().min(1, "PO date is required"),
   delivery_date: z.string().optional(),
   description: z.string().optional(),
   terms_conditions: z.string().optional(),
-  status: z.enum(['Draft', 'Sent', 'Confirmed', 'Partial', 'Completed', 'Cancelled']),
-  items: z.array(purchaseOrderItemSchema).min(1, 'At least one item is required'),
-})
+  status: z.enum([
+    "Draft",
+    "Sent",
+    "Confirmed",
+    "Partial",
+    "Completed",
+    "Cancelled",
+  ]),
+  items: z
+    .array(purchaseOrderItemSchema)
+    .min(1, "At least one item is required"),
+});
 
-type PurchaseOrderEditFormData = z.infer<typeof purchaseOrderEditSchema>
+type PurchaseOrderEditFormData = z.infer<typeof purchaseOrderEditSchema>;
 
 interface PurchaseOrderEditFormProps {
-  purchaseOrder: PurchaseOrder
-  ledgers: Ledger[]
-  userId: string
+  purchaseOrder: PurchaseOrder;
+  ledgers: Ledger[];
+  userId: string;
 }
 
-export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: PurchaseOrderEditFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+export function PurchaseOrderEditForm({
+  purchaseOrder,
+  ledgers,
+  userId,
+}: PurchaseOrderEditFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(
-    ledgers.find(l => l.ledger_id === purchaseOrder.ledger_id) || null
-  )
+    ledgers.find((l) => l.ledger_id === purchaseOrder.ledger_id) || null,
+  );
 
   // Parse existing items
   const parseItems = (items: Json | null) => {
-    if (!items) return [{ item_name: '', description: '', quantity: 1, unit_price: 0, total_price: 0 }]
+    if (!items)
+      return [
+        {
+          item_name: "",
+          description: "",
+          quantity: 1,
+          unit_price: 0,
+          total_price: 0,
+        },
+      ];
     try {
-      const parsed = typeof items === 'string' ? JSON.parse(items) : items
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : [{ item_name: '', description: '', quantity: 1, unit_price: 0, total_price: 0 }]
+      const parsed = typeof items === "string" ? JSON.parse(items) : items;
+      return Array.isArray(parsed) && parsed.length > 0
+        ? parsed
+        : [
+            {
+              item_name: "",
+              description: "",
+              quantity: 1,
+              unit_price: 0,
+              total_price: 0,
+            },
+          ];
     } catch {
-      return [{ item_name: '', description: '', quantity: 1, unit_price: 0, total_price: 0 }]
+      return [
+        {
+          item_name: "",
+          description: "",
+          quantity: 1,
+          unit_price: 0,
+          total_price: 0,
+        },
+      ];
     }
-  }
+  };
 
   const {
     register,
@@ -76,59 +128,69 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
     resolver: zodResolver(purchaseOrderEditSchema),
     defaultValues: {
       supplier_name: purchaseOrder.supplier_name,
-      ledger_id: purchaseOrder.ledger_id === 'custom' ? 'custom' : (purchaseOrder.ledger_id || 'custom'),
+      ledger_id:
+        purchaseOrder.ledger_id === "custom"
+          ? "custom"
+          : purchaseOrder.ledger_id || "custom",
       po_date: purchaseOrder.po_date,
-      delivery_date: purchaseOrder.delivery_date || '',
-      description: purchaseOrder.description || '',
-      terms_conditions: purchaseOrder.terms_conditions || '',
-      status: (purchaseOrder.status as 'Draft' | 'Sent' | 'Confirmed' | 'Partial' | 'Completed' | 'Cancelled') || 'Draft',
+      delivery_date: purchaseOrder.delivery_date || "",
+      description: purchaseOrder.description || "",
+      terms_conditions: purchaseOrder.terms_conditions || "",
+      status:
+        (purchaseOrder.status as
+          | "Draft"
+          | "Sent"
+          | "Confirmed"
+          | "Partial"
+          | "Completed"
+          | "Cancelled") || "Draft",
       items: parseItems(purchaseOrder.items),
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'items',
-  })
+    name: "items",
+  });
 
-  const items = watch('items')
+  const items = watch("items");
 
   const handleLedgerSelect = (ledgerId: string) => {
-    if (ledgerId && ledgerId !== 'custom') {
-      const ledger = ledgers.find(l => l.ledger_id === ledgerId)
-      setSelectedLedger(ledger || null)
-      setValue('ledger_id', ledgerId)
+    if (ledgerId && ledgerId !== "custom") {
+      const ledger = ledgers.find((l) => l.ledger_id === ledgerId);
+      setSelectedLedger(ledger || null);
+      setValue("ledger_id", ledgerId);
       if (ledger) {
-        setValue('supplier_name', ledger.business_name)
+        setValue("supplier_name", ledger.business_name);
       }
     } else {
-      setSelectedLedger(null)
-      setValue('ledger_id', 'custom')
+      setSelectedLedger(null);
+      setValue("ledger_id", "custom");
     }
-  }
+  };
 
   const calculateItemTotal = (index: number) => {
-    const quantity = items[index]?.quantity || 0
-    const unitPrice = items[index]?.unit_price || 0
-    const total = quantity * unitPrice
-    setValue(`items.${index}.total_price`, total)
-    return total
-  }
+    const quantity = items[index]?.quantity || 0;
+    const unitPrice = items[index]?.unit_price || 0;
+    const total = quantity * unitPrice;
+    setValue(`items.${index}.total_price`, total);
+    return total;
+  };
 
   const calculateGrandTotal = () => {
-    return items.reduce((sum, item) => sum + (item.total_price || 0), 0)
-  }
+    return items.reduce((sum, item) => sum + (item.total_price || 0), 0);
+  };
 
   const onSubmit = async (data: PurchaseOrderEditFormData) => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     try {
-      const totalAmount = calculateGrandTotal()
+      const totalAmount = calculateGrandTotal();
 
       const updatedPurchaseOrderData = {
         supplier_name: data.supplier_name,
-        ledger_id: data.ledger_id === 'custom' ? null : data.ledger_id,
+        ledger_id: data.ledger_id === "custom" ? null : data.ledger_id,
         po_date: data.po_date,
         delivery_date: data.delivery_date || null,
         description: data.description || null,
@@ -137,27 +199,27 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
         items: data.items,
         total_amount: totalAmount,
         updated_at: new Date().toISOString(),
-      }
+      };
 
       const { error: updateError } = await supabase
-        .from('purchase_orders')
+        .from("purchase_orders")
         .update(updatedPurchaseOrderData)
-        .eq('id', purchaseOrder.id)
+        .eq("id", purchaseOrder.id);
 
       if (updateError) {
-        setError('Failed to update purchase order. Please try again.')
-        return
+        setError("Failed to update purchase order. Please try again.");
+        return;
       }
 
-      router.push(`/dashboard/purchase/${purchaseOrder.id}`)
-      router.refresh()
+      router.push(`/dashboard/purchase/${purchaseOrder.id}`);
+      router.refresh();
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
-      console.error('Error updating purchase order:', err)
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Error updating purchase order:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -177,11 +239,7 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="po_date">PO Date *</Label>
-              <Input
-                id="po_date"
-                type="date"
-                {...register('po_date')}
-              />
+              <Input id="po_date" type="date" {...register("po_date")} />
               {errors.po_date && (
                 <p className="text-sm text-red-600">{errors.po_date.message}</p>
               )}
@@ -192,14 +250,28 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
               <Input
                 id="delivery_date"
                 type="date"
-                {...register('delivery_date')}
+                {...register("delivery_date")}
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={watch('status')} onValueChange={(value) => setValue('status', value as 'Draft' | 'Sent' | 'Confirmed' | 'Partial' | 'Completed' | 'Cancelled')}>
+            <Select
+              value={watch("status")}
+              onValueChange={(value) =>
+                setValue(
+                  "status",
+                  value as
+                    | "Draft"
+                    | "Sent"
+                    | "Confirmed"
+                    | "Partial"
+                    | "Completed"
+                    | "Cancelled",
+                )
+              }
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -220,12 +292,17 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
       <Card>
         <CardHeader>
           <CardTitle>Supplier Information</CardTitle>
-          <CardDescription>Select supplier or enter custom supplier details</CardDescription>
+          <CardDescription>
+            Select supplier or enter custom supplier details
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="ledger_id">Select from Ledger (Optional)</Label>
-            <Select value={watch('ledger_id')} onValueChange={handleLedgerSelect}>
+            <Select
+              value={watch("ledger_id")}
+              onValueChange={handleLedgerSelect}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="-- Select Ledger or enter custom supplier --" />
               </SelectTrigger>
@@ -235,7 +312,9 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
                   <SelectItem key={ledger.ledger_id} value={ledger.ledger_id}>
                     <div>
                       <div className="font-medium">{ledger.business_name}</div>
-                      <div className="text-sm text-gray-500">{ledger.ledger_id}</div>
+                      <div className="text-sm text-gray-500">
+                        {ledger.ledger_id}
+                      </div>
                     </div>
                   </SelectItem>
                 ))}
@@ -247,24 +326,42 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
             <Label htmlFor="supplier_name">Supplier Name *</Label>
             <Input
               id="supplier_name"
-              {...register('supplier_name')}
+              {...register("supplier_name")}
               placeholder="Enter supplier name"
             />
             {errors.supplier_name && (
-              <p className="text-sm text-red-600">{errors.supplier_name.message}</p>
+              <p className="text-sm text-red-600">
+                {errors.supplier_name.message}
+              </p>
             )}
           </div>
 
           {selectedLedger && (
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Selected Supplier Details</h4>
+              <h4 className="font-medium text-gray-900 mb-2">
+                Selected Supplier Details
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <div><strong>Business:</strong> {selectedLedger.business_name}</div>
-                <div><strong>Contact:</strong> {selectedLedger.contact_person_name || 'N/A'}</div>
-                <div><strong>Mobile:</strong> {selectedLedger.mobile_number || 'N/A'}</div>
-                <div><strong>Email:</strong> {selectedLedger.email || 'N/A'}</div>
-                <div><strong>GST:</strong> {selectedLedger.gst_number || 'N/A'}</div>
-                <div><strong>Address:</strong> {selectedLedger.address || 'N/A'}</div>
+                <div>
+                  <strong>Business:</strong> {selectedLedger.business_name}
+                </div>
+                <div>
+                  <strong>Contact:</strong>{" "}
+                  {selectedLedger.contact_person_name || "N/A"}
+                </div>
+                <div>
+                  <strong>Mobile:</strong>{" "}
+                  {selectedLedger.mobile_number || "N/A"}
+                </div>
+                <div>
+                  <strong>Email:</strong> {selectedLedger.email || "N/A"}
+                </div>
+                <div>
+                  <strong>GST:</strong> {selectedLedger.gst_number || "N/A"}
+                </div>
+                <div>
+                  <strong>Address:</strong> {selectedLedger.address || "N/A"}
+                </div>
               </div>
             </div>
           )}
@@ -282,7 +379,9 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
             <div key={field.id} className="border p-4 rounded-lg relative">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor={`items.${index}.item_name`}>Item Name *</Label>
+                  <Label htmlFor={`items.${index}.item_name`}>
+                    Item Name *
+                  </Label>
                   <Input
                     {...register(`items.${index}.item_name`)}
                     placeholder="Enter item name"
@@ -298,9 +397,10 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
                   <Label htmlFor={`items.${index}.quantity`}>Quantity *</Label>
                   <Input
                     type="number"
-                    {...register(`items.${index}.quantity`, { 
+                    {...register(`items.${index}.quantity`, {
                       valueAsNumber: true,
-                      onChange: () => setTimeout(() => calculateItemTotal(index), 0)
+                      onChange: () =>
+                        setTimeout(() => calculateItemTotal(index), 0),
                     })}
                     placeholder="1"
                   />
@@ -312,13 +412,16 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor={`items.${index}.unit_price`}>Unit Price *</Label>
+                  <Label htmlFor={`items.${index}.unit_price`}>
+                    Unit Price *
+                  </Label>
                   <Input
                     type="number"
                     step="0.01"
-                    {...register(`items.${index}.unit_price`, { 
+                    {...register(`items.${index}.unit_price`, {
                       valueAsNumber: true,
-                      onChange: () => setTimeout(() => calculateItemTotal(index), 0)
+                      onChange: () =>
+                        setTimeout(() => calculateItemTotal(index), 0),
                     })}
                     placeholder="0.00"
                   />
@@ -334,7 +437,9 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
                   <Input
                     type="number"
                     step="0.01"
-                    {...register(`items.${index}.total_price`, { valueAsNumber: true })}
+                    {...register(`items.${index}.total_price`, {
+                      valueAsNumber: true,
+                    })}
                     placeholder="0.00"
                     readOnly
                     className="bg-gray-50"
@@ -342,7 +447,9 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor={`items.${index}.description`}>Description</Label>
+                  <Label htmlFor={`items.${index}.description`}>
+                    Description
+                  </Label>
                   <Input
                     {...register(`items.${index}.description`)}
                     placeholder="Item description"
@@ -368,7 +475,15 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
             <Button
               type="button"
               variant="outline"
-              onClick={() => append({ item_name: '', description: '', quantity: 1, unit_price: 0, total_price: 0 })}
+              onClick={() =>
+                append({
+                  item_name: "",
+                  description: "",
+                  quantity: 1,
+                  unit_price: 0,
+                  total_price: 0,
+                })
+              }
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Item
@@ -398,7 +513,7 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              {...register('description')}
+              {...register("description")}
               placeholder="Enter PO description or notes"
               rows={3}
             />
@@ -408,7 +523,7 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
             <Label htmlFor="terms_conditions">Terms & Conditions</Label>
             <Textarea
               id="terms_conditions"
-              {...register('terms_conditions')}
+              {...register("terms_conditions")}
               placeholder="Enter terms and conditions"
               rows={4}
             />
@@ -425,7 +540,7 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
               Updating PO...
             </>
           ) : (
-            'Update Purchase Order'
+            "Update Purchase Order"
           )}
         </Button>
         <Button
@@ -437,5 +552,5 @@ export function PurchaseOrderEditForm({ purchaseOrder, ledgers, userId }: Purcha
         </Button>
       </div>
     </form>
-  )
+  );
 }

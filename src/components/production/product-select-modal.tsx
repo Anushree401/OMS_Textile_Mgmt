@@ -1,60 +1,76 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
-import { Database } from '@/types/database'
-import Image from 'next/image'
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Database } from "@/types/database";
+import Image from "next/image";
 
-type Product = Database['public']['Tables']['products']['Row']
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 interface ProductSelectModalProps {
-  products: Product[]
-  onProductSelect: (productId: number) => void
-  children: React.ReactNode
+  products: Product[];
+  onProductSelect: (productId: number) => void;
+  children: React.ReactNode;
 }
 
-export function ProductSelectModal({ products, onProductSelect, children }: ProductSelectModalProps) {
-  const [open, setOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
+export function ProductSelectModal({
+  products,
+  onProductSelect,
+  children,
+}: ProductSelectModalProps) {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const filteredProducts = products.filter(product => {
-    const searchTermLower = searchTerm.toLowerCase()
-    const categoryLower = categoryFilter.toLowerCase()
-    const statusLower = statusFilter.toLowerCase()
+  const filteredProducts = products.filter((product) => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const categoryLower = categoryFilter.toLowerCase();
+    const statusLower = statusFilter.toLowerCase();
 
     return (
       (product.product_name.toLowerCase().includes(searchTermLower) ||
-       product.product_sku.toLowerCase().includes(searchTermLower) ||
-       (product.product_description && product.product_description.toLowerCase().includes(searchTermLower))) &&
-      (!categoryLower || product.product_category.toLowerCase().includes(categoryLower)) &&
-      (!statusLower || (product.product_status && product.product_status.toLowerCase().includes(statusLower)))
-    )
-  })
+        product.product_sku.toLowerCase().includes(searchTermLower) ||
+        (product.product_description &&
+          product.product_description
+            .toLowerCase()
+            .includes(searchTermLower))) &&
+      (!categoryLower ||
+        product.product_category.toLowerCase().includes(categoryLower)) &&
+      (!statusLower ||
+        (product.product_status &&
+          product.product_status.toLowerCase().includes(statusLower)))
+    );
+  });
 
   const handleSelect = (productId: number) => {
-    onProductSelect(productId)
-    setOpen(false)
-  }
+    onProductSelect(productId);
+    setOpen(false);
+  };
 
   const getStatusBadgeVariant = (status: string | null) => {
     switch (status) {
-      case 'Active':
-        return 'default'
-      case 'Inactive':
-        return 'destructive'
-      case 'Pipeline':
-        return 'secondary'
+      case "Active":
+        return "default";
+      case "Inactive":
+        return "destructive";
+      case "Pipeline":
+        return "secondary";
       default:
-        return 'outline'
+        return "outline";
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -71,7 +87,7 @@ export function ProductSelectModal({ products, onProductSelect, children }: Prod
                 id="search"
                 placeholder="Search by name, SKU, or description..."
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -80,7 +96,7 @@ export function ProductSelectModal({ products, onProductSelect, children }: Prod
                 id="category"
                 placeholder="Filter by category..."
                 value={categoryFilter}
-                onChange={e => setCategoryFilter(e.target.value)}
+                onChange={(e) => setCategoryFilter(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -89,13 +105,13 @@ export function ProductSelectModal({ products, onProductSelect, children }: Prod
                 id="status"
                 placeholder="Filter by status..."
                 value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
+                onChange={(e) => setStatusFilter(e.target.value)}
               />
             </div>
           </div>
           <ScrollArea className="h-72">
             <div className="space-y-2">
-              {filteredProducts.map(product => (
+              {filteredProducts.map((product) => (
                 <div
                   key={product.id}
                   className="p-3 border rounded-md cursor-pointer hover:bg-gray-100 flex items-center space-x-4"
@@ -120,16 +136,21 @@ export function ProductSelectModal({ products, onProductSelect, children }: Prod
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div className="font-medium">{product.product_name}</div>
-                      <Badge variant={getStatusBadgeVariant(product.product_status)}>
-                        {product.product_status || 'Unknown'}
+                      <Badge
+                        variant={getStatusBadgeVariant(product.product_status)}
+                      >
+                        {product.product_status || "Unknown"}
                       </Badge>
                     </div>
                     <div className="text-sm text-gray-500">
-                      SKU: {product.product_sku} | Category: {product.product_category}
+                      SKU: {product.product_sku} | Category:{" "}
+                      {product.product_category}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {product.product_sub_category && `Sub-Category: ${product.product_sub_category} | `}
-                      Qty: {product.product_qty || 0} | Brand: {product.product_brand || 'N/A'}
+                      {product.product_sub_category &&
+                        `Sub-Category: ${product.product_sub_category} | `}
+                      Qty: {product.product_qty || 0} | Brand:{" "}
+                      {product.product_brand || "N/A"}
                     </div>
                     {product.product_description && (
                       <div className="text-sm text-gray-600 mt-1 truncate">
@@ -149,5 +170,5 @@ export function ProductSelectModal({ products, onProductSelect, children }: Prod
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

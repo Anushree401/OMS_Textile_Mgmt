@@ -1,16 +1,19 @@
 # Batch History Enhancement Summary
 
 ## Overview
+
 We've significantly enhanced the batch history feature to provide comprehensive production statistics and detailed information about how raw materials are utilized in the production process.
 
 ## Key Accomplishments
 
 ### 1. Enhanced Database Function
+
 - Updated the `get_batch_history` database function to include detailed stitching challan information
 - Added fields for top/bottom quantities and piece counts
 - Included support for both regular and "both selected" stitching data
 
 ### 2. Extended TypeScript Types
+
 - Updated the `IsteachingChallanHistory` interface with new fields:
   - `top_qty`: Top section quantity in meters
   - `top_pcs_qty`: Top section quantity in pieces
@@ -21,6 +24,7 @@ We've significantly enhanced the batch history feature to provide comprehensive 
   - `both_bottom_qty`: Quantity for bottom section when both selected
 
 ### 3. Improved UI/UX
+
 - Added new summary cards for production statistics:
   - Total Top Quantity (meters and pieces)
   - Total Bottom Quantity (meters and pieces)
@@ -32,19 +36,22 @@ We've significantly enhanced the batch history feature to provide comprehensive 
   - Support for both regular and "both selected" stitching data
 
 ### 4. New Calculations
+
 - Total Top Quantity: Sum of all top section meters (including both selected)
 - Total Bottom Quantity: Sum of all bottom section meters (including both selected)
 - Total Top Pieces: Sum of all top section piece counts
 - Total Bottom Pieces: Sum of all bottom section piece counts
 - Average per Challan: Total stitching quantity divided by number of challans
-- Utilization Rate: (Total stitching quantity / Initial weaver challan quantity) * 100
+- Utilization Rate: (Total stitching quantity / Initial weaver challan quantity) \* 100
 
 ## Files Modified
 
 ### Database
+
 - `migrations/update_batch_history_function_v5.sql` - Enhanced database function
 
 ### Frontend
+
 - `src/types/batch-history.ts` - Updated TypeScript interfaces
 - `src/components/production/batch-history.tsx` - Enhanced UI with new statistics and tables
 - `docs/batch-history.md` - Updated documentation

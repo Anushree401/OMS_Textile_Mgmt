@@ -1,95 +1,105 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
-import Image from 'next/image'
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/lib/supabase/client";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [role, setRole] = useState('')
-  const [agreed, setAgreed] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('handleLogin called')
-    setError('')
+    e.preventDefault();
+    console.log("handleLogin called");
+    setError("");
 
     if (!email || !password || !role) {
-      setError('Please fill in all fields.')
-      return
+      setError("Please fill in all fields.");
+      return;
     }
 
     if (!agreed) {
-      setError('Please agree to the Privacy Policy.')
-      return
+      setError("Please agree to the Privacy Policy.");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       // First, sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (authError) {
-        setError('Invalid email or password.')
-        return
+        setError("Invalid email or password.");
+        return;
       }
 
       if (!authData.user) {
-        setError('Login failed. Please try again.')
-        return
+        setError("Login failed. Please try again.");
+        return;
       }
 
       // Then verify the user profile and role
       const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single()
+        .from("profiles")
+        .select("*")
+        .eq("id", authData.user.id)
+        .single();
 
       if (profileError || !profile) {
-        setError('User profile not found.')
-        return
+        setError("User profile not found.");
+        return;
       }
 
-      if (profile.user_status !== 'Active') {
-        setError('Account is inactive. Contact admin.')
-        return
+      if (profile.user_status !== "Active") {
+        setError("Account is inactive. Contact admin.");
+        return;
       }
 
       if (profile.user_role !== role) {
-        setError('Invalid role selected.')
-        return
+        setError("Invalid role selected.");
+        return;
       }
 
       // Redirect to main dashboard (all roles use the same dashboard)
-      router.push('/dashboard')
-
+      router.push("/dashboard");
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
-      console.error('Login error:', err)
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Login error:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -98,7 +108,9 @@ export default function LoginPage() {
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
               <div className="w-32 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">Bhaktinandan</span>
+                <span className="text-white font-bold text-lg">
+                  Bhaktinandan
+                </span>
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
@@ -108,7 +120,7 @@ export default function LoginPage() {
               Enter your credentials to access the OMS
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             {error && (
               <Alert variant="destructive">
@@ -119,11 +131,11 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="role">Select Role</Label>
-                <Select value={role}  onValueChange={setRole} required>
+                <Select value={role} onValueChange={setRole} required>
                   <SelectTrigger>
                     <SelectValue placeholder="-- Select Role --" />
                   </SelectTrigger>
-                  <SelectContent className=" bg-white " >
+                  <SelectContent className=" bg-white ">
                     <SelectItem value="User">User</SelectItem>
                     <SelectItem value="Manager">Manager</SelectItem>
                     <SelectItem value="Admin">Admin</SelectItem>
@@ -156,14 +168,14 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="legal" 
+                <Checkbox
+                  id="legal"
                   checked={agreed}
                   onCheckedChange={(checked) => setAgreed(checked as boolean)}
                   required
                 />
                 <Label htmlFor="legal" className="text-sm">
-                  I agree to the{' '}
+                  I agree to the{" "}
                   <button
                     type="button"
                     className="text-blue-600 hover:underline"
@@ -177,18 +189,14 @@ export default function LoginPage() {
                 </Label>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Signing in...
                   </>
                 ) : (
-                  'Login'
+                  "Login"
                 )}
               </Button>
             </form>
@@ -201,10 +209,10 @@ export default function LoginPage() {
             </div> */}
 
             <div className="text-center text-sm text-gray-600 mt-6">
-              Made with ❤️{' '}
-              <a 
-                href="https://vitacoders.com/" 
-                target="_blank" 
+              Made with ❤️{" "}
+              <a
+                href="https://vitacoders.com/"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline"
               >
@@ -215,5 +223,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

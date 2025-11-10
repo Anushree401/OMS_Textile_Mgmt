@@ -1,53 +1,26 @@
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+// src/middleware.ts
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next();
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"; // Or @supabase/ssr
+import { NextResponse, type NextRequest } from "next/server";
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          response.cookies.set({ name, value: '', ...options });
-        },
-      },
-    }
-  );
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // 1. Create a Supabase client configured to refresh the session
+  const supabase = createMiddlewareClient({ req, res });
 
-  // Check if user is authenticated
-  if (!user) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
-  }
+  // 2. Refresh the session. This reads the auth cookie and writes a fresh one.
+  //    This action is crucial for keeping the session alive and accessible.
+  await supabase.auth.getSession();
 
-  // Check if profile is complete
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_completed, username')
-    .eq('id', user.id)
-    .single();
-
-  // Redirect to onboarding if profile is incomplete
-  if (profile && (!profile.onboarding_completed || !profile.username)) {
-    if (!request.nextUrl.pathname.startsWith('/onboarding')) {
-      const onboardingUrl = new URL('/onboarding', request.url);
-      return NextResponse.redirect(onboardingUrl);
-    }
-  }
-
-  return response;
+  // 3. Pass the response back.
+  //    Any redirection logic (like checking for /login or /onboarding) should now be in the Server Components (page.tsx/layout.tsx).
+  return res;
 }
 
+// Only run the middleware on routes you want to handle session refreshing for
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  // Use a matcher that covers all routes where you need the session refreshed.
+  // If you only have auth on the dashboard, this is fine.
+  matcher: ["/", "/login", "/signup", "/dashboard/:path*", "/onboarding"],
 };

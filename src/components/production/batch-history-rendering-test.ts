@@ -6,11 +6,11 @@ const batchWithNoStitchingData = {
   weaver_challan: {
     date: "2025-08-13",
     party: "Testing Party Name",
-    quantity: 3000
+    quantity: 3000,
   },
   shorting_entries: [],
   isteaching_challans: [],
-  expenses: []
+  expenses: [],
 };
 
 // Expected result: Only basic summary cards should be shown
@@ -27,14 +27,14 @@ const batchWithStitchingData = {
   weaver_challan: {
     date: "2025-08-13",
     party: "Testing Party Name",
-    quantity: 3000
+    quantity: 3000,
   },
   shorting_entries: [
     {
       date: "2025-08-14",
       quantity: 50,
-      type: "Quality A"
-    }
+      type: "Quality A",
+    },
   ],
   isteaching_challans: [
     {
@@ -46,16 +46,16 @@ const batchWithStitchingData = {
       top_pcs_qty: 20,
       bottom_qty: 25,
       bottom_pcs_qty: 25,
-      both_selected: false
-    }
+      both_selected: false,
+    },
   ],
   expenses: [
     {
       date: "2025-08-15",
       amount: 500,
-      reason: "Transportation"
-    }
-  ]
+      reason: "Transportation",
+    },
+  ],
 };
 
 // Expected result: All cards should be shown
@@ -73,4 +73,6 @@ const batchWithStitchingData = {
 // - Utilization Rate: 1.7%
 
 console.log("Test completed: Conditional rendering verified");
-console.log("Enhanced cards only appear when there is relevant data to display");
+console.log(
+  "Enhanced cards only appear when there is relevant data to display",
+);

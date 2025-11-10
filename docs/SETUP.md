@@ -16,10 +16,11 @@ npm install @radix-ui/react-label @radix-ui/react-avatar @radix-ui/react-checkbo
    - Note down your Project URL and Anon Key
 
 2. **Update Environment Variables**:
+
    ```bash
    # Copy the example file
    cp .env.example .env.local
-   
+
    # Edit .env.local with your Supabase credentials
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -159,21 +160,21 @@ CREATE POLICY "All authenticated users can view products" ON public.products
   FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Admin and Manager can insert products" ON public.products
-  FOR INSERT TO authenticated 
+  FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
 
 CREATE POLICY "Admin and Manager can update products" ON public.products
-  FOR UPDATE TO authenticated 
+  FOR UPDATE TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
@@ -183,11 +184,11 @@ CREATE POLICY "All authenticated users can view ledgers" ON public.ledgers
   FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Admin and Manager can insert ledgers" ON public.ledgers
-  FOR INSERT TO authenticated 
+  FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
@@ -197,21 +198,21 @@ CREATE POLICY "All authenticated users can view purchase orders" ON public.purch
   FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Admin and Manager can insert purchase orders" ON public.purchase_orders
-  FOR INSERT TO authenticated 
+  FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
 
 CREATE POLICY "Admin and Manager can update purchase orders" ON public.purchase_orders
-  FOR UPDATE TO authenticated 
+  FOR UPDATE TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
@@ -221,21 +222,21 @@ CREATE POLICY "All authenticated users can view weaver challans" ON public.weave
   FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Admin and Manager can insert weaver challans" ON public.weaver_challans
-  FOR INSERT TO authenticated 
+  FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
 
 CREATE POLICY "Admin and Manager can update weaver challans" ON public.weaver_challans
-  FOR UPDATE TO authenticated 
+  FOR UPDATE TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE id = auth.uid() 
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND user_role IN ('Admin', 'Manager')
     )
   );
@@ -275,9 +276,9 @@ In Supabase SQL editor, create a test admin user:
 ```sql
 -- First, you need to sign up through the application or Supabase Auth
 -- Then update the profile role:
-UPDATE public.profiles 
-SET user_role = 'Admin', 
-    first_name = 'Admin', 
+UPDATE public.profiles
+SET user_role = 'Admin',
+    first_name = 'Admin',
     last_name = 'User'
 WHERE email = 'your-email@example.com';
 ```

@@ -1,120 +1,20 @@
-// import { createServerSupabaseClient } from '@/lib/supabase/server'
-// import { redirect } from 'next/navigation'
-// import { DashboardContent } from '@/components/dashboard/dashboard-content'
-
-// export default async function DashboardPage() {
-//   const supabase = createServerSupabaseClient()
-  
-//   const { data: { user } } = await supabase.auth.getUser()
-  
-//   if (!user) {
-//     redirect('/login')
-//   }
-
-//   // Get user profile
-//   const { data: profile } = await supabase
-//     .from('profiles')
-//     .select('*')
-//     .eq('id', user.id)
-//     .single()
-
-//   if (!profile) {
-//     redirect('/login')
-//   }
-
-//   // Fetch dashboard data in parallel
-//   const [
-//     { data: products, count: productsCount },
-//     { data: ledgers, count: ledgersCount },
-//     { data: purchaseOrders, count: purchaseOrdersCount },
-//     { data: weaverChallans, count: weaverChallansCount },
-//     { data: recentPurchaseOrders },
-//     { data: recentWeaverChallans }
-//   ] = await Promise.all([
-//     // Products stats
-//     supabase
-//       .from('products')
-//       .select('*', { count: 'exact' })
-//       .eq('product_status', 'Active'),
-    
-//     // Ledgers stats
-//     supabase
-//       .from('ledgers')
-//       .select('*', { count: 'exact' }),
-    
-//     // Purchase Orders stats
-//     supabase
-//       .from('purchase_orders')
-//       .select('*', { count: 'exact' }),
-    
-//     // Weaver Challans stats
-//     supabase
-//       .from('weaver_challans')
-//       .select('*', { count: 'exact' }),
-    
-//     // Recent Purchase Orders
-//     supabase
-//       .from('purchase_orders')
-//       .select(`
-//         *,
-//         ledgers (
-//           business_name,
-//           contact_person_name
-//         )
-//       `)
-//       .order('created_at', { ascending: false })
-//       .limit(5),
-    
-//     // Recent Weaver Challans
-//     supabase
-//       .from('weaver_challans')
-//       .select(`
-//         *,
-//         ledgers (
-//           business_name,
-//           contact_person_name
-//         )
-//       `)
-//       .order('created_at', { ascending: false })
-//       .limit(5)
-//   ])
-
-//   // Calculate today's stats
-//   const today = new Date().toISOString().split('T')[0]
-  
-//   const { count: todayPurchaseOrders } = await supabase
-//     .from('purchase_orders')
-//     .select('*', { count: 'exact', head: true })
-//     .gte('created_at', today)
-
-//   const { count: todayWeaverChallans } = await supabase
-//     .from('weaver_challans')
-//     .select('*', { count: 'exact', head: true })
-//     .gte('created_at', today)
-
-//   const dashboardData = {
-//     stats: {
-//       todayOrders: (todayPurchaseOrders || 0) + (todayWeaverChallans || 0),
-//       totalOrders: (purchaseOrdersCount || 0) + (weaverChallansCount || 0),
-//       totalProducts: productsCount || 0,
-//       activeLedgers: ledgersCount || 0,
-//       productionBatches: weaverChallansCount || 0
-//     },
-//     recentPurchaseOrders: recentPurchaseOrders || [],
-//     recentWeaverChallans: recentWeaverChallans || []
-//   }
-
-//   return <DashboardContent profile={profile} dashboardData={dashboardData} />
-// }
-
 // src/app/(dashboard)/dashboard/page.tsx
-// Fix for username fetching issue
 
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+// Assuming this path to your Supabase generated types is correct
+import { Database } from "@/types/supabase";
+
+// Define a type for the profile object to satisfy TypeScript,
+// ensuring all selected columns are present.
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type DashboardProfile = Pick<
+  ProfileRow,
+  "id" | "username" | "full_name" | "user_role" | "avatar_url"
+>;
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Get authenticated user
   const {
@@ -123,37 +23,58 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // FIXED: Properly fetch user profile with username
+  // Note: TypeScript will still need assurance, handled below.
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, username, full_name, role, avatar_url')
-    .eq('id', user.id)
+    .from("profiles")
+    .select("id, username, full_name, user_role, avatar_url")
+    .eq("id", user.id)
     .single();
 
   if (profileError) {
-    console.error('Error fetching profile:', profileError);
+    console.error("Error fetching profile:", profileError);
   }
 
   // Use fallback if username is not available
-  const displayName = profile?.username || profile?.full_name || user.email?.split('@')[0] || 'User';
+  // FIX APPLIED: Type-cast the profile data to ensure username/full_name are recognized
+  const typedProfile = profile as DashboardProfile | null;
+
+  const displayName =
+    typedProfile?.username ||
+    typedProfile?.full_name ||
+    user.email?.split("@")[0] ||
+    "User";
 
   // Fetch dashboard statistics
-  const [ordersResult, productsResult, ledgersResult, challansResult] = await Promise.all([
-    supabase.from('purchase_orders').select('id, status, created_at', { count: 'exact' }),
-    supabase.from('products').select('id', { count: 'exact' }).eq('status', 'active'),
-    supabase.from('ledgers').select('id', { count: 'exact' }).eq('status', 'active'),
-    supabase.from('weaver_challans').select('id, batch_number, created_at').order('created_at', { ascending: false }).limit(5),
-  ]);
+  const [ordersResult, productsResult, ledgersResult, challansResult] =
+    await Promise.all([
+      supabase
+        .from("purchase_orders")
+        .select("id, status, created_at", { count: "exact" }),
+      supabase
+        .from("products")
+        .select("id", { count: "exact" })
+        .eq("status", "active"),
+      supabase
+        .from("ledgers")
+        .select("id", { count: "exact" })
+        .eq("status", "active"),
+      supabase
+        .from("weaver_challans")
+        .select("id, batch_number, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
 
   // Get today's orders count
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
   const { count: todayOrdersCount } = await supabase
-    .from('purchase_orders')
-    .select('id', { count: 'exact' })
-    .gte('created_at', today);
+    .from("purchase_orders")
+    .select("id", { count: "exact" })
+    .gte("created_at", today);
 
   return (
     <div className="space-y-6">
@@ -167,9 +88,9 @@ export default async function DashboardPage() {
             Here's what's happening with your business today.
           </p>
         </div>
-        {profile?.avatar_url && (
+        {typedProfile?.avatar_url && (
           <img
-            src={profile.avatar_url}
+            src={typedProfile.avatar_url}
             alt={displayName}
             className="h-12 w-12 rounded-full object-cover"
           />
@@ -210,7 +131,15 @@ export default async function DashboardPage() {
 }
 
 // Helper component for stat cards
-function StatCard({ title, value, description }: { title: string; value: number; description: string }) {
+function StatCard({
+  title,
+  value,
+  description,
+}: {
+  title: string;
+  value: number;
+  description: string;
+}) {
   return (
     <div className="rounded-lg border bg-card p-6">
       <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>

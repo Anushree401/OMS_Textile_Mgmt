@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Camera, User, Building2, Phone, Check, Loader2 } from 'lucide-react';
+import { supabase } from "@/lib/supabase/client"; // Correct path to browser client
+import { Building2, Camera, Check, Loader2, Phone, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface OnboardingFormProps {
   userId: string;
@@ -11,36 +11,42 @@ interface OnboardingFormProps {
   existingProfile?: any;
 }
 
-export default function OnboardingForm({ userId, userEmail, existingProfile }: OnboardingFormProps) {
+export default function OnboardingForm({
+  userId,
+  userEmail,
+  existingProfile,
+}: OnboardingFormProps) {
   const router = useRouter();
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(existingProfile?.avatar_url || '');
+  const [previewUrl, setPreviewUrl] = useState(
+    existingProfile?.avatar_url || "",
+  );
 
   const [formData, setFormData] = useState({
-    username: existingProfile?.username || '',
-    full_name: existingProfile?.full_name || '',
-    phone: existingProfile?.phone || '',
-    company_name: existingProfile?.company_name || '',
-    gst_number: existingProfile?.gst_number || '',
-    address: existingProfile?.address || '',
-    city: existingProfile?.city || '',
-    state: existingProfile?.state || '',
-    pincode: existingProfile?.pincode || '',
+    username: existingProfile?.username || "",
+    full_name: existingProfile?.full_name || "",
+    phone: existingProfile?.phone || "",
+    company_name: existingProfile?.company_name || "",
+    gst_number: existingProfile?.gst_number || "",
+    address: existingProfile?.address || "",
+    city: existingProfile?.city || "",
+    state: existingProfile?.state || "",
+    pincode: existingProfile?.pincode || "",
   });
 
   const totalSteps = 3;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setError('');
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,13 +54,13 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('Image size should be less than 5MB');
+        setError("Image size should be less than 5MB");
         return;
       }
 
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please upload an image file');
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload an image file");
         return;
       }
 
@@ -71,26 +77,26 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
     if (!avatarFile) return previewUrl;
 
     try {
-      const fileExt = avatarFile.name.split('.').pop();
+      const fileExt = avatarFile.name.split(".").pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-photos')
+        .from("profile-photos")
         .upload(filePath, avatarFile, {
-          cacheControl: '3600',
+          cacheControl: "3600",
           upsert: true,
         });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-photos')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("profile-photos").getPublicUrl(filePath);
 
       return publicUrl;
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error("Error uploading avatar:", error);
       return null;
     }
   };
@@ -99,58 +105,67 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
     switch (step) {
       case 1:
         if (!formData.username.trim()) {
-          setError('Username is required');
+          setError("Username is required");
           return false;
         }
         if (formData.username.length < 3) {
-          setError('Username must be at least 3 characters');
+          setError("Username must be at least 3 characters");
           return false;
         }
         if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-          setError('Username can only contain letters, numbers, and underscores');
+          setError(
+            "Username can only contain letters, numbers, and underscores",
+          );
           return false;
         }
         if (!formData.full_name.trim()) {
-          setError('Full name is required');
+          setError("Full name is required");
           return false;
         }
         return true;
 
       case 2:
         if (!formData.phone.trim()) {
-          setError('Phone number is required');
+          setError("Phone number is required");
           return false;
         }
-        if (!/^[6-9]\d{9}$/.test(formData.phone.replace(/\D/g, '').slice(-10))) {
-          setError('Please enter a valid 10-digit phone number');
+        if (
+          !/^[6-9]\d{9}$/.test(formData.phone.replace(/\D/g, "").slice(-10))
+        ) {
+          setError("Please enter a valid 10-digit phone number");
           return false;
         }
         if (!formData.company_name.trim()) {
-          setError('Company name is required');
+          setError("Company name is required");
           return false;
         }
         // GST validation (optional field)
-        if (formData.gst_number && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gst_number)) {
-          setError('Invalid GST number format');
+        if (
+          formData.gst_number &&
+          !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+            formData.gst_number,
+          )
+        ) {
+          setError("Invalid GST number format");
           return false;
         }
         return true;
 
       case 3:
         if (!formData.address.trim()) {
-          setError('Address is required');
+          setError("Address is required");
           return false;
         }
         if (!formData.city.trim()) {
-          setError('City is required');
+          setError("City is required");
           return false;
         }
         if (!formData.state) {
-          setError('State is required');
+          setError("State is required");
           return false;
         }
         if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode)) {
-          setError('Please enter a valid 6-digit pincode');
+          setError("Please enter a valid 6-digit pincode");
           return false;
         }
         return true;
@@ -163,14 +178,14 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
   const handleNext = () => {
     if (validateStep() && step < totalSteps) {
       setStep(step + 1);
-      setError('');
+      setError("");
     }
   };
 
   const handlePrevious = () => {
     if (step > 1) {
       setStep(step - 1);
-      setError('');
+      setError("");
     }
   };
 
@@ -178,19 +193,19 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
     if (!validateStep()) return;
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Check if username is already taken
       const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', formData.username)
-        .neq('id', userId)
+        .from("profiles")
+        .select("id")
+        .eq("username", formData.username)
+        .neq("id", userId)
         .single();
 
       if (existingUser) {
-        setError('Username is already taken. Please choose another one.');
+        setError("Username is already taken. Please choose another one.");
         setLoading(false);
         return;
       }
@@ -201,6 +216,7 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
       // Update or insert profile
       const profileData = {
         id: userId,
+        email: userEmail,
         username: formData.username,
         full_name: formData.full_name,
         phone: formData.phone,
@@ -216,19 +232,19 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
       };
 
       const { error: upsertError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .upsert(profileData, {
-          onConflict: 'id',
+          onConflict: "id",
         });
 
       if (upsertError) throw upsertError;
 
       // Success - redirect to dashboard
-      router.push('/dashboard');
+      router.push("/dashboard");
       router.refresh();
     } catch (error: any) {
-      console.error('Error completing onboarding:', error);
-      setError(error.message || 'Failed to complete setup. Please try again.');
+      console.error("Error completing onboarding:", error);
+      setError(error.message || "Failed to complete setup. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -239,17 +255,19 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
         {/* Progress Bar */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
-          <h2 className="text-2xl font-bold text-white mb-4">Complete Your Profile</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Complete Your Profile
+          </h2>
           <div className="flex items-center justify-between mb-2">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center flex-1">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
                     s < step
-                      ? 'bg-white text-blue-600'
+                      ? "bg-white text-blue-600"
                       : s === step
-                      ? 'bg-blue-400 text-white ring-4 ring-blue-300'
-                      : 'bg-blue-700 text-blue-300'
+                        ? "bg-blue-400 text-white ring-4 ring-blue-300"
+                        : "bg-blue-700 text-blue-300"
                   }`}
                 >
                   {s < step ? <Check size={20} /> : s}
@@ -257,7 +275,7 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
                 {s < 3 && (
                   <div
                     className={`flex-1 h-1 mx-2 transition-all ${
-                      s < step ? 'bg-white' : 'bg-blue-700'
+                      s < step ? "bg-white" : "bg-blue-700"
                     }`}
                   />
                 )}
@@ -286,7 +304,11 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
                 <div className="relative">
                   <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden border-4 border-blue-200">
                     {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <User size={48} className="text-blue-400" />
                     )}
@@ -305,7 +327,9 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
                     />
                   </label>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">Upload your profile picture</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Upload your profile picture
+                </p>
               </div>
 
               <div>
@@ -503,8 +527,8 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
               type="button"
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
                 step === 1
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
               Previous
@@ -525,12 +549,12 @@ export default function OnboardingForm({ userId, userEmail, existingProfile }: O
                 type="button"
                 className={`px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
                   loading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg"
                 }`}
               >
                 {loading && <Loader2 className="animate-spin" size={20} />}
-                {loading ? 'Completing...' : 'Complete Setup'}
+                {loading ? "Completing..." : "Complete Setup"}
               </button>
             )}
           </div>

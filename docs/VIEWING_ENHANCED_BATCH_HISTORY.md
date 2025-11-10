@@ -1,15 +1,18 @@
 # How to View the Enhanced Batch History Feature
 
 ## Overview
+
 The enhanced batch history feature provides comprehensive production statistics and detailed information about how raw materials are utilized in the production process.
 
 ## Prerequisites
+
 1. Make sure you have applied the latest database migration
 2. Ensure the development server is running
 
 ## Steps to View the Enhanced Batch History
 
 ### 1. Apply Database Migration
+
 First, you need to apply the enhanced database function:
 
 ```sql
@@ -76,6 +79,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
 ### 2. Start the Development Server
+
 If not already running, start the development server:
 
 ```bash
@@ -86,6 +90,7 @@ npm run dev
 The server should start on http://localhost:3001 (port 3000 might be in use)
 
 ### 3. Navigate to Batch History Page
+
 1. Open your browser and go to: http://localhost:3001
 2. Log in with your credentials
 3. Navigate to a batch history page by visiting:
@@ -100,19 +105,24 @@ The server should start on http://localhost:3001 (port 3000 might be in use)
 ## What You Should See
 
 ### Enhanced Summary Cards
+
 You should see additional summary cards including:
+
 - Total Top Quantity (meters and pieces)
 - Total Bottom Quantity (meters and pieces)
 - Average quantity per challan
 - Utilization rate (efficiency metric)
 
 ### Enhanced Stitching Challans Table
+
 The stitching challans table now includes:
+
 - Separate columns for top and bottom section data
 - Clear display of meters and pieces for each section
 - Support for both regular and "both selected" stitching data
 
 ### Detailed Production Metrics
+
 - Top section quantities in both meters and pieces
 - Bottom section quantities in both meters and pieces
 - Utilization rate showing production efficiency
@@ -121,20 +131,24 @@ The stitching challans table now includes:
 ## Troubleshooting
 
 ### If You Don't See the Enhanced Features:
+
 1. Make sure you applied the database migration
 2. Check that you're viewing a batch that has stitching challans with top/bottom data
 3. Clear your browser cache and refresh the page
 4. Restart the development server
 
 ### If You Get Errors:
+
 1. Check the browser console for any JavaScript errors
 2. Verify that all dependencies are installed correctly
 3. Ensure the database connection is working properly
 
 ## Example Batch Numbers to Test
+
 Look in your database for batches that have stitching challans associated with them. These will show the enhanced features most clearly.
 
 For example, if you have a batch B12345 that has been used in stitching challans, navigating to:
+
 ```
 http://localhost:3001/dashboard/production/batch/B12345
 ```

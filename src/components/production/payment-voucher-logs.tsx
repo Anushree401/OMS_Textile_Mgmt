@@ -1,31 +1,32 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Calendar, 
-  IndianRupee, 
-  User, 
-  FileText,
-  ArrowLeft
-} from 'lucide-react'
-import { Database } from '@/types/database'
-import { formatDate } from '@/lib/utils'
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, IndianRupee, User, FileText, ArrowLeft } from "lucide-react";
+import { Database } from "@/types/database";
+import { formatDate } from "@/lib/utils";
 
-type PaymentVoucher = Database['public']['Tables']['payment_vouchers']['Row'] & {
-  ledgers?: {
-    business_name: string;
-  } | null;
-};
+type PaymentVoucher =
+  Database["public"]["Tables"]["payment_vouchers"]["Row"] & {
+    ledgers?: {
+      business_name: string;
+    } | null;
+  };
 
 type ChangeValue = {
   old: unknown;
   new: unknown;
 };
 
-type Log = Database['public']['Tables']['payment_voucher_logs']['Row'] & {
+type Log = Database["public"]["Tables"]["payment_voucher_logs"]["Row"] & {
   changer?: {
     first_name: string | null;
     last_name: string | null;
@@ -34,16 +35,16 @@ type Log = Database['public']['Tables']['payment_voucher_logs']['Row'] & {
 };
 
 interface PaymentVoucherLogsProps {
-  paymentVoucher: PaymentVoucher
-  logs: Log[]
+  paymentVoucher: PaymentVoucher;
+  logs: Log[];
 }
 
-export function PaymentVoucherLogs({ 
-  paymentVoucher, 
-  logs 
+export function PaymentVoucherLogs({
+  paymentVoucher,
+  logs,
 }: PaymentVoucherLogsProps) {
-  const router = useRouter()
-  
+  const router = useRouter();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -53,9 +54,13 @@ export function PaymentVoucherLogs({
             History of changes for payment voucher
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => router.push(`/dashboard/production/payment-voucher/${paymentVoucher.id}`)}
+        <Button
+          variant="outline"
+          onClick={() =>
+            router.push(
+              `/dashboard/production/payment-voucher/${paymentVoucher.id}`,
+            )
+          }
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Details
@@ -68,26 +73,26 @@ export function PaymentVoucherLogs({
           <Card>
             <CardHeader>
               <CardTitle>Payment Voucher</CardTitle>
-              <CardDescription>
-                Voucher details
-              </CardDescription>
+              <CardDescription>Voucher details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <div className="text-sm text-gray-500">Business</div>
                 <div className="font-medium mt-1">
-                  {paymentVoucher.ledgers?.business_name || 'N/A'}
+                  {paymentVoucher.ledgers?.business_name || "N/A"}
                 </div>
               </div>
-              
+
               <div>
                 <div className="text-sm text-gray-500">Date</div>
                 <div className="flex items-center mt-1">
                   <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                  <span>{new Date(paymentVoucher.date).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(paymentVoucher.date).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
-              
+
               <div>
                 <div className="text-sm text-gray-500">Amount</div>
                 <div className="flex items-center mt-1">
@@ -95,7 +100,7 @@ export function PaymentVoucherLogs({
                   <span>{paymentVoucher.amount.toFixed(2)}</span>
                 </div>
               </div>
-              
+
               <div>
                 <div className="text-sm text-gray-500">Payment For</div>
                 <div className="mt-1 p-2 bg-gray-50 rounded-md">
@@ -112,7 +117,7 @@ export function PaymentVoucherLogs({
             <CardHeader>
               <CardTitle>Change History</CardTitle>
               <CardDescription>
-                {logs.length} change {logs.length === 1 ? 'record' : 'records'}
+                {logs.length} change {logs.length === 1 ? "record" : "records"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -127,38 +132,51 @@ export function PaymentVoucherLogs({
                           </div>
                           <div>
                             <div className="font-medium">
-                              {log.changer?.first_name} {log.changer?.last_name || 'System'}
+                              {log.changer?.first_name}{" "}
+                              {log.changer?.last_name || "System"}
                             </div>
                             <div className="text-sm text-gray-500">
                               {formatDate(log.changed_at)}
                             </div>
                           </div>
                         </div>
-                        <Badge variant="secondary">
-                          ID: {log.id}
-                        </Badge>
+                        <Badge variant="secondary">ID: {log.id}</Badge>
                       </div>
-                      
-                      {log.changes && typeof log.changes === 'object' && Object.keys(log.changes).length > 0 ? (
+
+                      {log.changes &&
+                      typeof log.changes === "object" &&
+                      Object.keys(log.changes).length > 0 ? (
                         <div className="mt-4 pl-11">
-                          <div className="text-sm font-medium mb-2">Changes:</div>
+                          <div className="text-sm font-medium mb-2">
+                            Changes:
+                          </div>
                           <div className="space-y-2">
-                            {Object.entries(log.changes).map(([field, values]) => (
-                              <div key={field} className="flex items-start">
-                                <div className="w-32 text-sm text-gray-500">{field}</div>
-                                <div className="flex-1">
-                                  <div className="flex items-center text-sm">
-                                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded mr-2">
-                                      {values && typeof values.old === 'object' ? JSON.stringify(values.old) : String((values?.old || 'N/A'))}
-                                    </span>
-                                    <span className="mx-2">→</span>
-                                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                                      {values && typeof values.new === 'object' ? JSON.stringify(values.new) : String(values?.new || 'N/A')}
-                                    </span>
+                            {Object.entries(log.changes).map(
+                              ([field, values]) => (
+                                <div key={field} className="flex items-start">
+                                  <div className="w-32 text-sm text-gray-500">
+                                    {field}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center text-sm">
+                                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded mr-2">
+                                        {values &&
+                                        typeof values.old === "object"
+                                          ? JSON.stringify(values.old)
+                                          : String(values?.old || "N/A")}
+                                      </span>
+                                      <span className="mx-2">→</span>
+                                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                                        {values &&
+                                        typeof values.new === "object"
+                                          ? JSON.stringify(values.new)
+                                          : String(values?.new || "N/A")}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              ),
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -183,5 +201,5 @@ export function PaymentVoucherLogs({
         </div>
       </div>
     </div>
-  )
+  );
 }

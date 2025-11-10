@@ -1,47 +1,63 @@
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { ConvertToInventoryContent } from '@/components/inventory/convert-to-inventory-content'
+import { ConvertToInventoryContent } from "@/components/inventory/convert-to-inventory-content";
+import { createClient } from "@/lib/supabase/server";
+import { Database } from "@/types/supabase";
+import { redirect } from "next/navigation";
+
+// Define a type for the profile object to ensure user_role is known
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ConvertedProfile = Pick<ProfileRow, "id" | "user_role">;
 
 export default async function ConvertToInventoryPage() {
-  const supabase = createServerSupabaseClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+
+  // 1. Authentication Check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
-    redirect('/login')
+    return redirect("/login");
   }
 
-  // Get user profile
+  // 2. Get User Profile and Check for Existence
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+    .from("profiles")
+    .select("id, user_role")
+    .eq("id", user.id)
+    .single();
 
-  if (!profile) {
-    redirect('/login')
+  // FIX APPLIED HERE: Convert profile to 'unknown' before casting to ConvertedProfile
+  const typedProfile = profile as unknown as ConvertedProfile;
+
+  // FIX 2: Check for profile or missing user_role, then redirect
+  if (!profile || !typedProfile.user_role) {
+    return redirect("/login");
   }
 
-  // Fetch all Stitching Challans that have not yet been converted to inventory
-  // This would require a specific query to find challans that haven't been converted
-  // For now, we'll fetch all challans as a placeholder
+  // 3. Fetch Challans
   const { data: challans, error } = await supabase
-    .from('isteaching_challans')
-    .select(`
-      *,
-      ledgers (business_name),
-      products (product_name, product_description, product_image, product_sku)
-    `)
-    .order('date', { ascending: false })
+    .from("weaver_challans")
+    .select(
+      `
+            *,
+            ledgers (business_name),
+            products (product_name, product_description, product_image, product_sku)
+        `,
+    )
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching challans:', error)
+    console.error("Error fetching challans:", error);
+    // Returning empty array will allow the page to render with an error message
   }
 
+  // 4. Render Content
   return (
-    <ConvertToInventoryContent 
+    <ConvertToInventoryContent
       challans={challans || []}
-      userRole={profile.user_role}
+      // FIX 2 (The final step): Use Non-null Assertion Operator (!)
+      // This is safe because we checked if user_role exists on line 36.
+      userRole={typedProfile.user_role!}
     />
-  )
+  );
 }

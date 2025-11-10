@@ -1,125 +1,164 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { 
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
-  Download
-} from 'lucide-react'
-import { Database } from '@/types/database'
-import { formatDate } from '@/lib/utils'
-import Image from 'next/image'
+  Download,
+} from "lucide-react";
+import { Database } from "@/types/database";
+import { formatDate } from "@/lib/utils";
+import Image from "next/image";
 
-type Product = Database['public']['Tables']['products']['Row']
-type UserRole = Database['public']['Tables']['profiles']['Row']['user_role']
+type Product = Database["public"]["Tables"]["products"]["Row"];
+type UserRole = Database["public"]["Tables"]["profiles"]["Row"]["user_role"];
 
 interface ProductsContentProps {
-  products: Product[]
-  totalCount: number
+  products: Product[];
+  totalCount: number;
   filterOptions: {
-    categories: string[]
-    colors: string[]
-    materials: string[]
-    statuses: string[]
-  }
-  userRole: UserRole
+    categories: string[];
+    colors: string[];
+    materials: string[];
+    statuses: string[];
+  };
+  userRole: UserRole;
 }
 
-export function ProductsContent({ products, totalCount, filterOptions, userRole }: ProductsContentProps) {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedColor, setSelectedColor] = useState('')
-  const [selectedMaterial, setSelectedMaterial] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  
-  const canEdit = userRole === 'Admin' || userRole === 'Manager'
+export function ProductsContent({
+  products,
+  totalCount,
+  filterOptions,
+  userRole,
+}: ProductsContentProps) {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedMaterial, setSelectedMaterial] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = !searchTerm || 
+  const canEdit = userRole === "Admin" || userRole === "Manager";
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      !searchTerm ||
       product.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.product_sku.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = !selectedCategory || product.product_category === selectedCategory
-    const matchesColor = !selectedColor || product.product_color === selectedColor
-    const matchesMaterial = !selectedMaterial || product.product_material === selectedMaterial
-    const matchesStatus = !selectedStatus || product.product_status === selectedStatus
+      product.product_sku.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesCategory && matchesColor && matchesMaterial && matchesStatus
-  })
+    const matchesCategory =
+      !selectedCategory || product.product_category === selectedCategory;
+    const matchesColor =
+      !selectedColor || product.product_color === selectedColor;
+    const matchesMaterial =
+      !selectedMaterial || product.product_material === selectedMaterial;
+    const matchesStatus =
+      !selectedStatus || product.product_status === selectedStatus;
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesColor &&
+      matchesMaterial &&
+      matchesStatus
+    );
+  });
 
   const getStatusBadge = (status: string | null) => {
-    return status === 'Active' ? (
-      <Badge variant="default" className="bg-green-100 text-green-700">Active</Badge>
+    return status === "Active" ? (
+      <Badge variant="default" className="bg-green-100 text-green-700">
+        Active
+      </Badge>
     ) : (
-      <Badge variant="secondary" className="bg-red-100 text-red-700">Inactive</Badge>
-    )
-  }
+      <Badge variant="secondary" className="bg-red-100 text-red-700">
+        Inactive
+      </Badge>
+    );
+  };
 
   const clearFilters = () => {
-    setSearchTerm('')
-    setSelectedCategory('')
-    setSelectedColor('')
-    setSelectedMaterial('')
-    setSelectedStatus('')
-  }
+    setSearchTerm("");
+    setSelectedCategory("");
+    setSelectedColor("");
+    setSelectedMaterial("");
+    setSelectedStatus("");
+  };
 
-  const handleDeleteProduct = async (productId: number, productName: string) => {
-    if (!confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
-      return
+  const handleDeleteProduct = async (
+    productId: number,
+    productName: string,
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${productName}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(productId)
+    setDeletingId(productId);
 
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .delete()
-        .eq('id', productId)
+        .eq("id", productId);
 
       if (error) {
-        toast.error('Failed to delete product. Please try again.')
-        return
+        toast.error("Failed to delete product. Please try again.");
+        return;
       }
 
-      toast.success(`"${productName}" has been deleted successfully.`)
+      toast.success(`"${productName}" has been deleted successfully.`);
       // Refresh the page to show updated data
-      router.refresh()
+      router.refresh();
     } catch (err) {
-      console.error('Error deleting product:', err)
-      toast.error('An unexpected error occurred. Please try again.')
+      console.error("Error deleting product:", err);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -132,7 +171,9 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
           </p>
         </div>
         {canEdit && (
-          <Button onClick={() => router.push('/dashboard/inventory/products/create')}>
+          <Button
+            onClick={() => router.push("/dashboard/inventory/products/create")}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -146,9 +187,7 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
             <Filter className="h-5 w-5 mr-2" />
             Filters
           </CardTitle>
-          <CardDescription>
-            Filter products by various criteria
-          </CardDescription>
+          <CardDescription>Filter products by various criteria</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -163,17 +202,22 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
                 />
               </div>
             </div>
-            
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                {filterOptions.categories.filter(category => category && category.trim() !== '').map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
+                {filterOptions.categories
+                  .filter((category) => category && category.trim() !== "")
+                  .map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
@@ -182,24 +226,31 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
                 <SelectValue placeholder="Color" />
               </SelectTrigger>
               <SelectContent>
-                {filterOptions.colors.filter(color => color && color.trim() !== '').map((color) => (
-                  <SelectItem key={color} value={color}>
-                    {color}
-                  </SelectItem>
-                ))}
+                {filterOptions.colors
+                  .filter((color) => color && color.trim() !== "")
+                  .map((color) => (
+                    <SelectItem key={color} value={color}>
+                      {color}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
-            <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
+            <Select
+              value={selectedMaterial}
+              onValueChange={setSelectedMaterial}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Material" />
               </SelectTrigger>
               <SelectContent>
-                {filterOptions.materials.filter(material => material && material.trim() !== '').map((material) => (
-                  <SelectItem key={material} value={material}>
-                    {material}
-                  </SelectItem>
-                ))}
+                {filterOptions.materials
+                  .filter((material) => material && material.trim() !== "")
+                  .map((material) => (
+                    <SelectItem key={material} value={material}>
+                      {material}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
@@ -208,16 +259,22 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                {filterOptions.statuses.filter(status => status && status.trim() !== '').map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
+                {filterOptions.statuses
+                  .filter((status) => status && status.trim() !== "")
+                  .map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
-          
-          {(searchTerm || selectedCategory || selectedColor || selectedMaterial || selectedStatus) && (
+
+          {(searchTerm ||
+            selectedCategory ||
+            selectedColor ||
+            selectedMaterial ||
+            selectedStatus) && (
             <div className="mt-4 flex items-center gap-2">
               <span className="text-sm text-gray-600">Active filters:</span>
               <Button variant="outline" size="sm" onClick={clearFilters}>
@@ -272,14 +329,20 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
                   <TableCell>
                     <div>
                       <div className="font-medium">{product.product_name}</div>
-                      <div className="text-sm text-gray-500">{product.product_description}</div>
+                      <div className="text-sm text-gray-500">
+                        {product.product_description}
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{product.product_sku}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {product.product_sku}
+                  </TableCell>
                   <TableCell>{product.product_category}</TableCell>
                   <TableCell>{product.product_color}</TableCell>
                   <TableCell>{product.product_material}</TableCell>
-                  <TableCell>{getStatusBadge(product.product_status)}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(product.product_status)}
+                  </TableCell>
                   <TableCell className="text-sm text-gray-500">
                     {formatDate(product.created_at)}
                   </TableCell>
@@ -290,29 +353,44 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className='bg-white' >
+                      <DropdownMenuContent align="end" className="bg-white">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/inventory/products/${product.id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/inventory/products/${product.id}`,
+                            )
+                          }
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           View
                         </DropdownMenuItem>
                         {canEdit && (
                           <DropdownMenuItem
-                            onClick={() => router.push(`/dashboard/inventory/products/${product.id}/edit`)}
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/inventory/products/${product.id}/edit`,
+                              )
+                            }
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                         )}
                         {canEdit && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeleteProduct(product.id, product.product_name)}
+                            onClick={() =>
+                              handleDeleteProduct(
+                                product.id,
+                                product.product_name,
+                              )
+                            }
                             disabled={deletingId === product.id}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {deletingId === product.id ? 'Deleting...' : 'Delete'}
+                            {deletingId === product.id
+                              ? "Deleting..."
+                              : "Delete"}
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -322,7 +400,7 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
               ))}
             </TableBody>
           </Table>
-          
+
           {filteredProducts.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-500">No products found</div>
@@ -334,5 +412,5 @@ export function ProductsContent({ products, totalCount, filterOptions, userRole 
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
